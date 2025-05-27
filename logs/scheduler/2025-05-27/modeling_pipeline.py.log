@@ -1,0 +1,42 @@
+[2025-05-27T00:00:07.794+0000] {processor.py:156} INFO - Started process (PID=1043) to work on /opt/airflow/dags/modeling_pipeline.py
+[2025-05-27T00:00:07.795+0000] {processor.py:799} INFO - Processing file /opt/airflow/dags/modeling_pipeline.py for tasks to queue
+[2025-05-27T00:00:07.797+0000] {logging_mixin.py:149} INFO - [2025-05-27T00:00:07.796+0000] {dagbag.py:541} INFO - Filling up the DagBag from /opt/airflow/dags/modeling_pipeline.py
+[2025-05-27T00:00:09.924+0000] {logging_mixin.py:149} INFO - [2025-05-27T00:00:09.921+0000] {dagbag.py:350} ERROR - Failed to import: /opt/airflow/dags/modeling_pipeline.py
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/models/dagbag.py", line 346, in parse
+    loader.exec_module(new_module)
+  File "<frozen importlib._bootstrap_external>", line 850, in exec_module
+  File "<frozen importlib._bootstrap>", line 228, in _call_with_frames_removed
+  File "/opt/airflow/dags/modeling_pipeline.py", line 14, in <module>
+    import shap
+ModuleNotFoundError: No module named 'shap'
+[2025-05-27T00:00:09.925+0000] {processor.py:811} WARNING - No viable dags retrieved from /opt/airflow/dags/modeling_pipeline.py
+[2025-05-27T00:00:09.968+0000] {processor.py:178} INFO - Processing /opt/airflow/dags/modeling_pipeline.py took 2.181 seconds
+[2025-05-27T00:00:40.316+0000] {processor.py:156} INFO - Started process (PID=1074) to work on /opt/airflow/dags/modeling_pipeline.py
+[2025-05-27T00:00:40.318+0000] {processor.py:799} INFO - Processing file /opt/airflow/dags/modeling_pipeline.py for tasks to queue
+[2025-05-27T00:00:40.319+0000] {logging_mixin.py:149} INFO - [2025-05-27T00:00:40.319+0000] {dagbag.py:541} INFO - Filling up the DagBag from /opt/airflow/dags/modeling_pipeline.py
+[2025-05-27T00:00:42.413+0000] {logging_mixin.py:149} INFO - [2025-05-27T00:00:42.410+0000] {dagbag.py:350} ERROR - Failed to import: /opt/airflow/dags/modeling_pipeline.py
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/models/dagbag.py", line 346, in parse
+    loader.exec_module(new_module)
+  File "<frozen importlib._bootstrap_external>", line 850, in exec_module
+  File "<frozen importlib._bootstrap>", line 228, in _call_with_frames_removed
+  File "/opt/airflow/dags/modeling_pipeline.py", line 14, in <module>
+    import shap
+ModuleNotFoundError: No module named 'shap'
+[2025-05-27T00:00:42.415+0000] {processor.py:811} WARNING - No viable dags retrieved from /opt/airflow/dags/modeling_pipeline.py
+[2025-05-27T00:00:42.454+0000] {processor.py:178} INFO - Processing /opt/airflow/dags/modeling_pipeline.py took 2.147 seconds
+[2025-05-27T00:01:12.783+0000] {processor.py:156} INFO - Started process (PID=1105) to work on /opt/airflow/dags/modeling_pipeline.py
+[2025-05-27T00:01:12.785+0000] {processor.py:799} INFO - Processing file /opt/airflow/dags/modeling_pipeline.py for tasks to queue
+[2025-05-27T00:01:12.787+0000] {logging_mixin.py:149} INFO - [2025-05-27T00:01:12.786+0000] {dagbag.py:541} INFO - Filling up the DagBag from /opt/airflow/dags/modeling_pipeline.py
+[2025-05-27T00:01:15.067+0000] {logging_mixin.py:149} INFO - [2025-05-27T00:01:15.065+0000] {dagbag.py:350} ERROR - Failed to import: /opt/airflow/dags/modeling_pipeline.py
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/models/dagbag.py", line 346, in parse
+    loader.exec_module(new_module)
+  File "<frozen importlib._bootstrap_external>", line 850, in exec_module
+  File "<frozen importlib._bootstrap>", line 228, in _call_with_frames_removed
+  File "/opt/airflow/dags/modeling_pipeline.py", line 14, in <module>
+    import shap
+ModuleNotFoundError: No module named 'shap'
+[2025-05-27T00:01:15.068+0000] {processor.py:811} WARNING - No viable dags retrieved from /opt/airflow/dags/modeling_pipeline.py
+[2025-05-27T00:01:15.097+0000] {processor.py:178} INFO - Processing /opt/airflow/dags/modeling_pipeline.py took 2.324 seconds

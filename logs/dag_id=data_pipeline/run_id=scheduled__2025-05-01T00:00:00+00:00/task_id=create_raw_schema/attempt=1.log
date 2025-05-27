@@ -1,0 +1,58 @@
+[2025-05-25T17:21:49.099+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: data_pipeline.create_raw_schema scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-25T17:21:49.114+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: data_pipeline.create_raw_schema scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-25T17:21:49.115+0000] {taskinstance.py:1331} INFO - Starting attempt 1 of 2
+[2025-05-25T17:21:49.131+0000] {taskinstance.py:1350} INFO - Executing <Task(PostgresOperator): create_raw_schema> on 2025-05-01 00:00:00+00:00
+[2025-05-25T17:21:49.141+0000] {standard_task_runner.py:57} INFO - Started process 625 to run task
+[2025-05-25T17:21:49.152+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'data_pipeline', 'create_raw_schema', 'scheduled__2025-05-01T00:00:00+00:00', '--job-id', '15', '--raw', '--subdir', 'DAGS_FOLDER/data_pipeline.py', '--cfg-path', '/tmp/tmprev6ghqz']
+[2025-05-25T17:21:49.158+0000] {standard_task_runner.py:85} INFO - Job 15: Subtask create_raw_schema
+[2025-05-25T17:21:49.259+0000] {task_command.py:410} INFO - Running <TaskInstance: data_pipeline.create_raw_schema scheduled__2025-05-01T00:00:00+00:00 [running]> on host bf217478d96c
+[2025-05-25T17:21:49.405+0000] {taskinstance.py:1568} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='data_pipeline' AIRFLOW_CTX_TASK_ID='create_raw_schema' AIRFLOW_CTX_EXECUTION_DATE='2025-05-01T00:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2025-05-01T00:00:00+00:00'
+[2025-05-25T17:21:49.407+0000] {sql.py:262} INFO - Executing: CREATE SCHEMA IF NOT EXISTS raw_data;
+[2025-05-25T17:21:49.442+0000] {taskinstance.py:1847} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/providers/common/sql/operators/sql.py", line 263, in execute
+    hook = self.get_db_hook()
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/providers/common/sql/operators/sql.py", line 181, in get_db_hook
+    return self._hook
+  File "/usr/local/lib/python3.9/functools.py", line 993, in __get__
+    val = self.func(instance)
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/providers/common/sql/operators/sql.py", line 143, in _hook
+    conn = BaseHook.get_connection(self.conn_id)
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/hooks/base.py", line 72, in get_connection
+    conn = Connection.get_connection_from_secrets(conn_id)
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/models/connection.py", line 434, in get_connection_from_secrets
+    raise AirflowNotFoundException(f"The conn_id `{conn_id}` isn't defined")
+airflow.exceptions.AirflowNotFoundException: The conn_id `postgres_default` isn't defined
+[2025-05-25T17:21:49.452+0000] {taskinstance.py:1368} INFO - Marking task as UP_FOR_RETRY. dag_id=data_pipeline, task_id=create_raw_schema, execution_date=20250501T000000, start_date=20250525T172149, end_date=20250525T172149
+[2025-05-25T17:21:49.470+0000] {standard_task_runner.py:104} ERROR - Failed to execute job 15 for task create_raw_schema (The conn_id `postgres_default` isn't defined; 625)
+[2025-05-25T17:21:49.520+0000] {local_task_job_runner.py:232} INFO - Task exited with return code 1
+[2025-05-25T17:21:49.572+0000] {taskinstance.py:2674} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2025-05-25T17:22:06.247+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: data_pipeline.create_raw_schema scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-25T17:22:06.264+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: data_pipeline.create_raw_schema scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-25T17:22:06.265+0000] {taskinstance.py:1331} INFO - Starting attempt 1 of 2
+[2025-05-25T17:22:06.284+0000] {taskinstance.py:1350} INFO - Executing <Task(PostgresOperator): create_raw_schema> on 2025-05-01 00:00:00+00:00
+[2025-05-25T17:22:06.299+0000] {standard_task_runner.py:57} INFO - Started process 628 to run task
+[2025-05-25T17:22:06.307+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'data_pipeline', 'create_raw_schema', 'scheduled__2025-05-01T00:00:00+00:00', '--job-id', '16', '--raw', '--subdir', 'DAGS_FOLDER/data_pipeline.py', '--cfg-path', '/tmp/tmpmm6v5yiw']
+[2025-05-25T17:22:06.312+0000] {standard_task_runner.py:85} INFO - Job 16: Subtask create_raw_schema
+[2025-05-25T17:22:06.429+0000] {task_command.py:410} INFO - Running <TaskInstance: data_pipeline.create_raw_schema scheduled__2025-05-01T00:00:00+00:00 [running]> on host bf217478d96c
+[2025-05-25T17:22:06.579+0000] {taskinstance.py:1568} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='data_pipeline' AIRFLOW_CTX_TASK_ID='create_raw_schema' AIRFLOW_CTX_EXECUTION_DATE='2025-05-01T00:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2025-05-01T00:00:00+00:00'
+[2025-05-25T17:22:06.582+0000] {sql.py:262} INFO - Executing: CREATE SCHEMA IF NOT EXISTS raw_data;
+[2025-05-25T17:22:06.631+0000] {taskinstance.py:1847} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/providers/common/sql/operators/sql.py", line 263, in execute
+    hook = self.get_db_hook()
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/providers/common/sql/operators/sql.py", line 181, in get_db_hook
+    return self._hook
+  File "/usr/local/lib/python3.9/functools.py", line 993, in __get__
+    val = self.func(instance)
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/providers/common/sql/operators/sql.py", line 143, in _hook
+    conn = BaseHook.get_connection(self.conn_id)
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/hooks/base.py", line 72, in get_connection
+    conn = Connection.get_connection_from_secrets(conn_id)
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/models/connection.py", line 434, in get_connection_from_secrets
+    raise AirflowNotFoundException(f"The conn_id `{conn_id}` isn't defined")
+airflow.exceptions.AirflowNotFoundException: The conn_id `postgres_default` isn't defined
+[2025-05-25T17:22:06.641+0000] {taskinstance.py:1368} INFO - Marking task as UP_FOR_RETRY. dag_id=data_pipeline, task_id=create_raw_schema, execution_date=20250501T000000, start_date=20250525T172206, end_date=20250525T172206
+[2025-05-25T17:22:06.675+0000] {standard_task_runner.py:104} ERROR - Failed to execute job 16 for task create_raw_schema (The conn_id `postgres_default` isn't defined; 628)
+[2025-05-25T17:22:06.721+0000] {local_task_job_runner.py:232} INFO - Task exited with return code 1
+[2025-05-25T17:22:06.772+0000] {taskinstance.py:2674} INFO - 0 downstream tasks scheduled from follow-on schedule check

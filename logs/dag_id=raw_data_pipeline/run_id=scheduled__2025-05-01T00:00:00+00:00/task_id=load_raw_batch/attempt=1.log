@@ -1,0 +1,166 @@
+[2025-05-25T16:49:41.414+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: raw_data_pipeline.load_raw_batch scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-25T16:49:41.430+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: raw_data_pipeline.load_raw_batch scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-25T16:49:41.430+0000] {taskinstance.py:1331} INFO - Starting attempt 1 of 2
+[2025-05-25T16:49:41.449+0000] {taskinstance.py:1350} INFO - Executing <Task(PythonOperator): load_raw_batch> on 2025-05-01 00:00:00+00:00
+[2025-05-25T16:49:41.458+0000] {standard_task_runner.py:57} INFO - Started process 188 to run task
+[2025-05-25T16:49:41.466+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'raw_data_pipeline', 'load_raw_batch', 'scheduled__2025-05-01T00:00:00+00:00', '--job-id', '6', '--raw', '--subdir', 'DAGS_FOLDER/data_pipeline.py', '--cfg-path', '/tmp/tmp1ghf8b_r']
+[2025-05-25T16:49:41.470+0000] {standard_task_runner.py:85} INFO - Job 6: Subtask load_raw_batch
+[2025-05-25T16:49:41.567+0000] {task_command.py:410} INFO - Running <TaskInstance: raw_data_pipeline.load_raw_batch scheduled__2025-05-01T00:00:00+00:00 [running]> on host bf217478d96c
+[2025-05-25T16:49:41.720+0000] {taskinstance.py:1568} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='raw_data_pipeline' AIRFLOW_CTX_TASK_ID='load_raw_batch' AIRFLOW_CTX_EXECUTION_DATE='2025-05-01T00:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2025-05-01T00:00:00+00:00'
+[2025-05-25T16:49:42.103+0000] {warnings.py:109} WARNING - /opt/***/dags/data_pipeline.py:86: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  df.to_sql(
+
+[2025-05-25T16:49:42.109+0000] {taskinstance.py:1847} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/operators/python.py", line 181, in execute
+    return_value = self.execute_callable()
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/operators/python.py", line 198, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+  File "/opt/airflow/dags/data_pipeline.py", line 86, in load_raw_batch
+    df.to_sql(
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/util/_decorators.py", line 333, in wrapper
+    return func(*args, **kwargs)
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/core/generic.py", line 3087, in to_sql
+    return sql.to_sql(
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/sql.py", line 842, in to_sql
+    return pandas_sql.to_sql(
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/sql.py", line 2850, in to_sql
+    table.create()
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/sql.py", line 984, in create
+    if self.exists():
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/sql.py", line 970, in exists
+    return self.pd_sql.has_table(self.name, self.schema)
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/sql.py", line 2865, in has_table
+    return len(self.execute(query, [name]).fetchall()) > 0
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/sql.py", line 2672, in execute
+    cur = self.con.cursor()
+AttributeError: 'Engine' object has no attribute 'cursor'
+[2025-05-25T16:49:42.134+0000] {taskinstance.py:1368} INFO - Marking task as UP_FOR_RETRY. dag_id=raw_data_pipeline, task_id=load_raw_batch, execution_date=20250501T000000, start_date=20250525T164941, end_date=20250525T164942
+[2025-05-25T16:49:42.446+0000] {standard_task_runner.py:104} ERROR - Failed to execute job 6 for task load_raw_batch ('Engine' object has no attribute 'cursor'; 188)
+[2025-05-25T16:49:42.484+0000] {local_task_job_runner.py:232} INFO - Task exited with return code 1
+[2025-05-25T16:49:42.526+0000] {taskinstance.py:2674} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2025-05-25T16:52:01.856+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: raw_data_pipeline.load_raw_batch scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-25T16:52:01.874+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: raw_data_pipeline.load_raw_batch scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-25T16:52:01.874+0000] {taskinstance.py:1331} INFO - Starting attempt 1 of 2
+[2025-05-25T16:52:01.898+0000] {taskinstance.py:1350} INFO - Executing <Task(PythonOperator): load_raw_batch> on 2025-05-01 00:00:00+00:00
+[2025-05-25T16:52:01.910+0000] {standard_task_runner.py:57} INFO - Started process 221 to run task
+[2025-05-25T16:52:01.916+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'raw_data_pipeline', 'load_raw_batch', 'scheduled__2025-05-01T00:00:00+00:00', '--job-id', '8', '--raw', '--subdir', 'DAGS_FOLDER/data_pipeline.py', '--cfg-path', '/tmp/tmptva_3ake']
+[2025-05-25T16:52:01.920+0000] {standard_task_runner.py:85} INFO - Job 8: Subtask load_raw_batch
+[2025-05-25T16:52:02.037+0000] {task_command.py:410} INFO - Running <TaskInstance: raw_data_pipeline.load_raw_batch scheduled__2025-05-01T00:00:00+00:00 [running]> on host bf217478d96c
+[2025-05-25T16:52:02.179+0000] {taskinstance.py:1568} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='raw_data_pipeline' AIRFLOW_CTX_TASK_ID='load_raw_batch' AIRFLOW_CTX_EXECUTION_DATE='2025-05-01T00:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2025-05-01T00:00:00+00:00'
+[2025-05-25T16:52:27.231+0000] {warnings.py:109} WARNING - /opt/***/dags/data_pipeline.py:88: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  df.to_sql(
+
+[2025-05-25T16:52:27.312+0000] {taskinstance.py:1847} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+psycopg2.errors.UndefinedTable: relation "sqlite_master" does not exist
+LINE 5:             sqlite_master
+                    ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/operators/python.py", line 181, in execute
+    return_value = self.execute_callable()
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/operators/python.py", line 198, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+  File "/opt/airflow/dags/data_pipeline.py", line 88, in load_raw_batch
+    df.to_sql(
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/util/_decorators.py", line 333, in wrapper
+    return func(*args, **kwargs)
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/core/generic.py", line 3087, in to_sql
+    return sql.to_sql(
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/sql.py", line 842, in to_sql
+    return pandas_sql.to_sql(
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/sql.py", line 2850, in to_sql
+    table.create()
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/sql.py", line 984, in create
+    if self.exists():
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/sql.py", line 970, in exists
+    return self.pd_sql.has_table(self.name, self.schema)
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/sql.py", line 2865, in has_table
+    return len(self.execute(query, [name]).fetchall()) > 0
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql '
+        SELECT
+            name
+        FROM
+            sqlite_master
+        WHERE
+            type IN ('table', 'view')
+            AND name=?;
+        ': relation "sqlite_master" does not exist
+LINE 5:             sqlite_master
+                    ^
+
+[2025-05-25T16:52:27.338+0000] {taskinstance.py:1368} INFO - Marking task as UP_FOR_RETRY. dag_id=raw_data_pipeline, task_id=load_raw_batch, execution_date=20250501T000000, start_date=20250525T165201, end_date=20250525T165227
+[2025-05-25T16:52:27.360+0000] {standard_task_runner.py:104} ERROR - Failed to execute job 8 for task load_raw_batch (Execution failed on sql '
+        SELECT
+            name
+        FROM
+            sqlite_master
+        WHERE
+            type IN ('table', 'view')
+            AND name=?;
+        ': relation "sqlite_master" does not exist
+LINE 5:             sqlite_master
+                    ^
+; 221)
+[2025-05-25T16:52:27.467+0000] {local_task_job_runner.py:232} INFO - Task exited with return code 1
+[2025-05-25T16:52:27.510+0000] {taskinstance.py:2674} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2025-05-25T16:58:32.695+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: raw_data_pipeline.load_raw_batch scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-25T16:58:32.712+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: raw_data_pipeline.load_raw_batch scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-25T16:58:32.713+0000] {taskinstance.py:1331} INFO - Starting attempt 1 of 2
+[2025-05-25T16:58:32.733+0000] {taskinstance.py:1350} INFO - Executing <Task(PythonOperator): load_raw_batch> on 2025-05-01 00:00:00+00:00
+[2025-05-25T16:58:32.744+0000] {standard_task_runner.py:57} INFO - Started process 314 to run task
+[2025-05-25T16:58:32.752+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'raw_data_pipeline', 'load_raw_batch', 'scheduled__2025-05-01T00:00:00+00:00', '--job-id', '11', '--raw', '--subdir', 'DAGS_FOLDER/data_pipeline.py', '--cfg-path', '/tmp/tmp6c2_hem7']
+[2025-05-25T16:58:32.756+0000] {standard_task_runner.py:85} INFO - Job 11: Subtask load_raw_batch
+[2025-05-25T16:58:32.872+0000] {task_command.py:410} INFO - Running <TaskInstance: raw_data_pipeline.load_raw_batch scheduled__2025-05-01T00:00:00+00:00 [running]> on host bf217478d96c
+[2025-05-25T16:58:33.014+0000] {taskinstance.py:1568} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='raw_data_pipeline' AIRFLOW_CTX_TASK_ID='load_raw_batch' AIRFLOW_CTX_EXECUTION_DATE='2025-05-01T00:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2025-05-01T00:00:00+00:00'
+[2025-05-25T16:58:33.029+0000] {taskinstance.py:1847} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/operators/python.py", line 181, in execute
+    return_value = self.execute_callable()
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/operators/python.py", line 198, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+  File "/opt/airflow/dags/data_pipeline.py", line 72, in load_raw_batch
+    resp.raise_for_status()
+  File "/home/airflow/.local/lib/python3.9/site-packages/requests/models.py", line 1021, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://10.43.101.108:80/data?group_number=6&day=Wednesday
+[2025-05-25T16:58:33.056+0000] {taskinstance.py:1368} INFO - Marking task as UP_FOR_RETRY. dag_id=raw_data_pipeline, task_id=load_raw_batch, execution_date=20250501T000000, start_date=20250525T165832, end_date=20250525T165833
+[2025-05-25T16:58:33.078+0000] {standard_task_runner.py:104} ERROR - Failed to execute job 11 for task load_raw_batch (400 Client Error: Bad Request for url: http://10.43.101.108:80/data?group_number=6&day=Wednesday; 314)
+[2025-05-25T16:58:33.126+0000] {local_task_job_runner.py:232} INFO - Task exited with return code 1
+[2025-05-25T16:58:33.165+0000] {taskinstance.py:2674} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2025-05-25T17:02:42.949+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: raw_data_pipeline.load_raw_batch scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-25T17:02:42.964+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: raw_data_pipeline.load_raw_batch scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-25T17:02:42.964+0000] {taskinstance.py:1331} INFO - Starting attempt 1 of 2
+[2025-05-25T17:02:42.985+0000] {taskinstance.py:1350} INFO - Executing <Task(PythonOperator): load_raw_batch> on 2025-05-01 00:00:00+00:00
+[2025-05-25T17:02:42.996+0000] {standard_task_runner.py:57} INFO - Started process 376 to run task
+[2025-05-25T17:02:43.003+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'raw_data_pipeline', 'load_raw_batch', 'scheduled__2025-05-01T00:00:00+00:00', '--job-id', '13', '--raw', '--subdir', 'DAGS_FOLDER/data_pipeline.py', '--cfg-path', '/tmp/tmpp0wfhucn']
+[2025-05-25T17:02:43.008+0000] {standard_task_runner.py:85} INFO - Job 13: Subtask load_raw_batch
+[2025-05-25T17:02:43.105+0000] {task_command.py:410} INFO - Running <TaskInstance: raw_data_pipeline.load_raw_batch scheduled__2025-05-01T00:00:00+00:00 [running]> on host bf217478d96c
+[2025-05-25T17:02:43.240+0000] {taskinstance.py:1568} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='raw_data_pipeline' AIRFLOW_CTX_TASK_ID='load_raw_batch' AIRFLOW_CTX_EXECUTION_DATE='2025-05-01T00:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2025-05-01T00:00:00+00:00'
+[2025-05-25T17:02:48.789+0000] {taskinstance.py:1847} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/operators/python.py", line 181, in execute
+    return_value = self.execute_callable()
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/operators/python.py", line 198, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+  File "/opt/airflow/dags/data_pipeline.py", line 86, in load_raw_batch
+    conn = psycopg2.connect(RAW_DB_URI)
+  File "/home/airflow/.local/lib/python3.9/site-packages/psycopg2/__init__.py", line 121, in connect
+    dsn = _ext.make_dsn(dsn, **kwargs)
+  File "/home/airflow/.local/lib/python3.9/site-packages/psycopg2/extensions.py", line 145, in make_dsn
+    parse_dsn(dsn)
+psycopg2.ProgrammingError: invalid dsn: missing "=" after "postgresql+psycopg2://***:***@mlops-postgres:5432/***" in connection info string
+
+[2025-05-25T17:02:48.809+0000] {taskinstance.py:1368} INFO - Marking task as UP_FOR_RETRY. dag_id=raw_data_pipeline, task_id=load_raw_batch, execution_date=20250501T000000, start_date=20250525T170242, end_date=20250525T170248
+[2025-05-25T17:02:48.826+0000] {standard_task_runner.py:104} ERROR - Failed to execute job 13 for task load_raw_batch (invalid dsn: missing "=" after "postgresql+psycopg2://***:***@mlops-postgres:5432/***" in connection info string
+; 376)
+[2025-05-25T17:02:48.883+0000] {local_task_job_runner.py:232} INFO - Task exited with return code 1
+[2025-05-25T17:02:48.920+0000] {taskinstance.py:2674} INFO - 0 downstream tasks scheduled from follow-on schedule check

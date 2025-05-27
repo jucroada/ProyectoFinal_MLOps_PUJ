@@ -1,0 +1,188 @@
+[2025-05-25T16:06:35.492+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: raw_data_pipeline.create_raw_table scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-25T16:06:35.518+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: raw_data_pipeline.create_raw_table scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-25T16:06:35.518+0000] {taskinstance.py:1331} INFO - Starting attempt 1 of 2
+[2025-05-25T16:06:35.536+0000] {taskinstance.py:1350} INFO - Executing <Task(PythonOperator): create_raw_table> on 2025-05-01 00:00:00+00:00
+[2025-05-25T16:06:35.551+0000] {standard_task_runner.py:57} INFO - Started process 8003 to run task
+[2025-05-25T16:06:35.557+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'raw_data_pipeline', 'create_raw_table', 'scheduled__2025-05-01T00:00:00+00:00', '--job-id', '3', '--raw', '--subdir', 'DAGS_FOLDER/data_pipeline.py', '--cfg-path', '/tmp/tmpcyitsd57']
+[2025-05-25T16:06:35.561+0000] {standard_task_runner.py:85} INFO - Job 3: Subtask create_raw_table
+[2025-05-25T16:06:35.660+0000] {task_command.py:410} INFO - Running <TaskInstance: raw_data_pipeline.create_raw_table scheduled__2025-05-01T00:00:00+00:00 [running]> on host 56418040e25f
+[2025-05-25T16:06:35.827+0000] {taskinstance.py:1568} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='raw_data_pipeline' AIRFLOW_CTX_TASK_ID='create_raw_table' AIRFLOW_CTX_EXECUTION_DATE='2025-05-01T00:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2025-05-01T00:00:00+00:00'
+[2025-05-25T16:06:35.842+0000] {taskinstance.py:1847} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3361, in _wrap_pool_connect
+    return fn()
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 327, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 894, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 493, in checkout
+    rec = pool._do_get()
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/impl.py", line 146, in _do_get
+    self._dec_overflow()
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+    compat.raise_(
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/impl.py", line 143, in _do_get
+    return self._create_connection()
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 273, in _create_connection
+    return _ConnectionRecord(self)
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 388, in __init__
+    self.__connect()
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 691, in __connect
+    pool.logger.debug("Error on connect(): %s", e)
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+    compat.raise_(
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 686, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/engine/create.py", line 574, in connect
+    return dialect.connect(*cargs, **cparams)
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/engine/default.py", line 598, in connect
+    return self.dbapi.connect(*cargs, **cparams)
+  File "/home/airflow/.local/lib/python3.9/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: connection to server at "mlops-postgres" (172.18.0.2), port 5432 failed: FATAL:  database "raw_data" does not exist
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/operators/python.py", line 181, in execute
+    return_value = self.execute_callable()
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/operators/python.py", line 198, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+  File "/opt/airflow/dags/data_pipeline.py", line 73, in create_raw_table
+    with engine.begin() as conn:
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3143, in begin
+    conn = self.connect(close_with_result=close_with_result)
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3315, in connect
+    return self._connection_cls(self, close_with_result=close_with_result)
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 96, in __init__
+    else engine.raw_connection()
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3394, in raw_connection
+    return self._wrap_pool_connect(self.pool.connect, _connection)
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3364, in _wrap_pool_connect
+    Connection._handle_dbapi_exception_noconnection(
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 2198, in _handle_dbapi_exception_noconnection
+    util.raise_(
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3361, in _wrap_pool_connect
+    return fn()
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 327, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 894, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 493, in checkout
+    rec = pool._do_get()
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/impl.py", line 146, in _do_get
+    self._dec_overflow()
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+    compat.raise_(
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/impl.py", line 143, in _do_get
+    return self._create_connection()
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 273, in _create_connection
+    return _ConnectionRecord(self)
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 388, in __init__
+    self.__connect()
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 691, in __connect
+    pool.logger.debug("Error on connect(): %s", e)
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+    compat.raise_(
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 686, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/engine/create.py", line 574, in connect
+    return dialect.connect(*cargs, **cparams)
+  File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/engine/default.py", line 598, in connect
+    return self.dbapi.connect(*cargs, **cparams)
+  File "/home/airflow/.local/lib/python3.9/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) connection to server at "mlops-postgres" (172.18.0.2), port 5432 failed: FATAL:  database "raw_data" does not exist
+
+(Background on this error at: https://sqlalche.me/e/14/e3q8)
+[2025-05-25T16:06:35.892+0000] {taskinstance.py:1368} INFO - Marking task as UP_FOR_RETRY. dag_id=raw_data_pipeline, task_id=create_raw_table, execution_date=20250501T000000, start_date=20250525T160635, end_date=20250525T160635
+[2025-05-25T16:06:35.922+0000] {standard_task_runner.py:104} ERROR - Failed to execute job 3 for task create_raw_table ((psycopg2.OperationalError) connection to server at "mlops-postgres" (172.18.0.2), port 5432 failed: FATAL:  database "raw_data" does not exist
+
+(Background on this error at: https://sqlalche.me/e/14/e3q8); 8003)
+[2025-05-25T16:06:35.972+0000] {local_task_job_runner.py:232} INFO - Task exited with return code 1
+[2025-05-25T16:06:36.030+0000] {taskinstance.py:2674} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2025-05-25T16:42:01.258+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: raw_data_pipeline.create_raw_table scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-25T16:42:01.271+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: raw_data_pipeline.create_raw_table scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-25T16:42:01.272+0000] {taskinstance.py:1331} INFO - Starting attempt 1 of 2
+[2025-05-25T16:42:01.291+0000] {taskinstance.py:1350} INFO - Executing <Task(PythonOperator): create_raw_table> on 2025-05-01 00:00:00+00:00
+[2025-05-25T16:42:01.303+0000] {standard_task_runner.py:57} INFO - Started process 81 to run task
+[2025-05-25T16:42:01.309+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'raw_data_pipeline', 'create_raw_table', 'scheduled__2025-05-01T00:00:00+00:00', '--job-id', '3', '--raw', '--subdir', 'DAGS_FOLDER/data_pipeline.py', '--cfg-path', '/tmp/tmpsk407zlc']
+[2025-05-25T16:42:01.315+0000] {standard_task_runner.py:85} INFO - Job 3: Subtask create_raw_table
+[2025-05-25T16:42:01.436+0000] {task_command.py:410} INFO - Running <TaskInstance: raw_data_pipeline.create_raw_table scheduled__2025-05-01T00:00:00+00:00 [running]> on host bf217478d96c
+[2025-05-25T16:42:01.603+0000] {taskinstance.py:1568} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='raw_data_pipeline' AIRFLOW_CTX_TASK_ID='create_raw_table' AIRFLOW_CTX_EXECUTION_DATE='2025-05-01T00:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2025-05-01T00:00:00+00:00'
+[2025-05-25T16:42:01.623+0000] {taskinstance.py:1847} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/operators/python.py", line 181, in execute
+    return_value = self.execute_callable()
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/operators/python.py", line 198, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+  File "/opt/airflow/dags/data_pipeline.py", line 41, in create_raw_table
+    CREATE TABLE IF NOT EXISTS {SCHEMA}.{TABLE} (
+NameError: name 'TABLE' is not defined
+[2025-05-25T16:42:01.645+0000] {taskinstance.py:1368} INFO - Marking task as UP_FOR_RETRY. dag_id=raw_data_pipeline, task_id=create_raw_table, execution_date=20250501T000000, start_date=20250525T164201, end_date=20250525T164201
+[2025-05-25T16:42:01.665+0000] {standard_task_runner.py:104} ERROR - Failed to execute job 3 for task create_raw_table (name 'TABLE' is not defined; 81)
+[2025-05-25T16:42:01.682+0000] {local_task_job_runner.py:232} INFO - Task exited with return code 1
+[2025-05-25T16:42:01.723+0000] {taskinstance.py:2674} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2025-05-25T16:49:39.184+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: raw_data_pipeline.create_raw_table scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-25T16:49:39.204+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: raw_data_pipeline.create_raw_table scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-25T16:49:39.205+0000] {taskinstance.py:1331} INFO - Starting attempt 1 of 2
+[2025-05-25T16:49:39.228+0000] {taskinstance.py:1350} INFO - Executing <Task(PythonOperator): create_raw_table> on 2025-05-01 00:00:00+00:00
+[2025-05-25T16:49:39.240+0000] {standard_task_runner.py:57} INFO - Started process 185 to run task
+[2025-05-25T16:49:39.249+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'raw_data_pipeline', 'create_raw_table', 'scheduled__2025-05-01T00:00:00+00:00', '--job-id', '5', '--raw', '--subdir', 'DAGS_FOLDER/data_pipeline.py', '--cfg-path', '/tmp/tmp2_toqj7j']
+[2025-05-25T16:49:39.253+0000] {standard_task_runner.py:85} INFO - Job 5: Subtask create_raw_table
+[2025-05-25T16:49:39.339+0000] {task_command.py:410} INFO - Running <TaskInstance: raw_data_pipeline.create_raw_table scheduled__2025-05-01T00:00:00+00:00 [running]> on host bf217478d96c
+[2025-05-25T16:49:39.467+0000] {taskinstance.py:1568} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='raw_data_pipeline' AIRFLOW_CTX_TASK_ID='create_raw_table' AIRFLOW_CTX_EXECUTION_DATE='2025-05-01T00:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2025-05-01T00:00:00+00:00'
+[2025-05-25T16:49:39.504+0000] {python.py:183} INFO - Done. Returned value was: None
+[2025-05-25T16:49:39.535+0000] {taskinstance.py:1368} INFO - Marking task as SUCCESS. dag_id=raw_data_pipeline, task_id=create_raw_table, execution_date=20250501T000000, start_date=20250525T164939, end_date=20250525T164939
+[2025-05-25T16:49:39.579+0000] {local_task_job_runner.py:232} INFO - Task exited with return code 0
+[2025-05-25T16:49:39.627+0000] {taskinstance.py:2674} INFO - 1 downstream tasks scheduled from follow-on schedule check
+[2025-05-25T16:52:00.566+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: raw_data_pipeline.create_raw_table scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-25T16:52:00.584+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: raw_data_pipeline.create_raw_table scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-25T16:52:00.584+0000] {taskinstance.py:1331} INFO - Starting attempt 1 of 2
+[2025-05-25T16:52:00.600+0000] {taskinstance.py:1350} INFO - Executing <Task(PythonOperator): create_raw_table> on 2025-05-01 00:00:00+00:00
+[2025-05-25T16:52:00.610+0000] {standard_task_runner.py:57} INFO - Started process 218 to run task
+[2025-05-25T16:52:00.618+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'raw_data_pipeline', 'create_raw_table', 'scheduled__2025-05-01T00:00:00+00:00', '--job-id', '7', '--raw', '--subdir', 'DAGS_FOLDER/data_pipeline.py', '--cfg-path', '/tmp/tmpcbtyjvz5']
+[2025-05-25T16:52:00.622+0000] {standard_task_runner.py:85} INFO - Job 7: Subtask create_raw_table
+[2025-05-25T16:52:00.720+0000] {task_command.py:410} INFO - Running <TaskInstance: raw_data_pipeline.create_raw_table scheduled__2025-05-01T00:00:00+00:00 [running]> on host bf217478d96c
+[2025-05-25T16:52:00.853+0000] {taskinstance.py:1568} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='raw_data_pipeline' AIRFLOW_CTX_TASK_ID='create_raw_table' AIRFLOW_CTX_EXECUTION_DATE='2025-05-01T00:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2025-05-01T00:00:00+00:00'
+[2025-05-25T16:52:00.873+0000] {python.py:183} INFO - Done. Returned value was: None
+[2025-05-25T16:52:00.892+0000] {taskinstance.py:1368} INFO - Marking task as SUCCESS. dag_id=raw_data_pipeline, task_id=create_raw_table, execution_date=20250501T000000, start_date=20250525T165200, end_date=20250525T165200
+[2025-05-25T16:52:00.951+0000] {local_task_job_runner.py:232} INFO - Task exited with return code 0
+[2025-05-25T16:52:01.008+0000] {taskinstance.py:2674} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2025-05-25T16:58:31.471+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: raw_data_pipeline.create_raw_table scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-25T16:58:31.487+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: raw_data_pipeline.create_raw_table scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-25T16:58:31.487+0000] {taskinstance.py:1331} INFO - Starting attempt 1 of 2
+[2025-05-25T16:58:31.503+0000] {taskinstance.py:1350} INFO - Executing <Task(PythonOperator): create_raw_table> on 2025-05-01 00:00:00+00:00
+[2025-05-25T16:58:31.516+0000] {standard_task_runner.py:57} INFO - Started process 311 to run task
+[2025-05-25T16:58:31.525+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'raw_data_pipeline', 'create_raw_table', 'scheduled__2025-05-01T00:00:00+00:00', '--job-id', '10', '--raw', '--subdir', 'DAGS_FOLDER/data_pipeline.py', '--cfg-path', '/tmp/tmppey2v_mu']
+[2025-05-25T16:58:31.530+0000] {standard_task_runner.py:85} INFO - Job 10: Subtask create_raw_table
+[2025-05-25T16:58:31.615+0000] {task_command.py:410} INFO - Running <TaskInstance: raw_data_pipeline.create_raw_table scheduled__2025-05-01T00:00:00+00:00 [running]> on host bf217478d96c
+[2025-05-25T16:58:31.756+0000] {taskinstance.py:1568} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='raw_data_pipeline' AIRFLOW_CTX_TASK_ID='create_raw_table' AIRFLOW_CTX_EXECUTION_DATE='2025-05-01T00:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2025-05-01T00:00:00+00:00'
+[2025-05-25T16:58:31.772+0000] {python.py:183} INFO - Done. Returned value was: None
+[2025-05-25T16:58:31.796+0000] {taskinstance.py:1368} INFO - Marking task as SUCCESS. dag_id=raw_data_pipeline, task_id=create_raw_table, execution_date=20250501T000000, start_date=20250525T165831, end_date=20250525T165831
+[2025-05-25T16:58:31.856+0000] {local_task_job_runner.py:232} INFO - Task exited with return code 0
+[2025-05-25T16:58:31.890+0000] {taskinstance.py:2674} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2025-05-25T17:02:41.638+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: raw_data_pipeline.create_raw_table scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-25T17:02:41.653+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: raw_data_pipeline.create_raw_table scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-25T17:02:41.653+0000] {taskinstance.py:1331} INFO - Starting attempt 1 of 2
+[2025-05-25T17:02:41.669+0000] {taskinstance.py:1350} INFO - Executing <Task(PythonOperator): create_raw_table> on 2025-05-01 00:00:00+00:00
+[2025-05-25T17:02:41.679+0000] {standard_task_runner.py:57} INFO - Started process 373 to run task
+[2025-05-25T17:02:41.693+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'raw_data_pipeline', 'create_raw_table', 'scheduled__2025-05-01T00:00:00+00:00', '--job-id', '12', '--raw', '--subdir', 'DAGS_FOLDER/data_pipeline.py', '--cfg-path', '/tmp/tmpz7ng4_lo']
+[2025-05-25T17:02:41.699+0000] {standard_task_runner.py:85} INFO - Job 12: Subtask create_raw_table
+[2025-05-25T17:02:41.801+0000] {task_command.py:410} INFO - Running <TaskInstance: raw_data_pipeline.create_raw_table scheduled__2025-05-01T00:00:00+00:00 [running]> on host bf217478d96c
+[2025-05-25T17:02:41.953+0000] {taskinstance.py:1568} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='raw_data_pipeline' AIRFLOW_CTX_TASK_ID='create_raw_table' AIRFLOW_CTX_EXECUTION_DATE='2025-05-01T00:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2025-05-01T00:00:00+00:00'
+[2025-05-25T17:02:41.980+0000] {python.py:183} INFO - Done. Returned value was: None
+[2025-05-25T17:02:42.001+0000] {taskinstance.py:1368} INFO - Marking task as SUCCESS. dag_id=raw_data_pipeline, task_id=create_raw_table, execution_date=20250501T000000, start_date=20250525T170241, end_date=20250525T170242
+[2025-05-25T17:02:42.062+0000] {local_task_job_runner.py:232} INFO - Task exited with return code 0
+[2025-05-25T17:02:42.094+0000] {taskinstance.py:2674} INFO - 0 downstream tasks scheduled from follow-on schedule check

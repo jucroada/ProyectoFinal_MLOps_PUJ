@@ -1,0 +1,93 @@
+[2025-05-26T03:46:52.091+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: data_pipeline.transform_and_load_clean scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-26T03:46:52.106+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: data_pipeline.transform_and_load_clean scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-26T03:46:52.107+0000] {taskinstance.py:1331} INFO - Starting attempt 2 of 2
+[2025-05-26T03:46:52.126+0000] {taskinstance.py:1350} INFO - Executing <Task(PythonOperator): transform_and_load_clean> on 2025-05-01 00:00:00+00:00
+[2025-05-26T03:46:52.139+0000] {standard_task_runner.py:57} INFO - Started process 6604 to run task
+[2025-05-26T03:46:52.147+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'data_pipeline', 'transform_and_load_clean', 'scheduled__2025-05-01T00:00:00+00:00', '--job-id', '27', '--raw', '--subdir', 'DAGS_FOLDER/data_pipeline.py', '--cfg-path', '/tmp/tmpjx852yot']
+[2025-05-26T03:46:52.152+0000] {standard_task_runner.py:85} INFO - Job 27: Subtask transform_and_load_clean
+[2025-05-26T03:46:52.245+0000] {task_command.py:410} INFO - Running <TaskInstance: data_pipeline.transform_and_load_clean scheduled__2025-05-01T00:00:00+00:00 [running]> on host 65cea7b09e55
+[2025-05-26T03:46:52.379+0000] {taskinstance.py:1568} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='data_pipeline' AIRFLOW_CTX_TASK_ID='transform_and_load_clean' AIRFLOW_CTX_EXECUTION_DATE='2025-05-01T00:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='2' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2025-05-01T00:00:00+00:00'
+[2025-05-26T03:46:52.413+0000] {warnings.py:109} WARNING - /opt/***/dags/data_pipeline.py:155: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  df = pd.read_sql_table(TABLE_NAME, schema=SCHEMA_RAW, con=engine_r)
+
+[2025-05-26T03:46:52.415+0000] {taskinstance.py:1847} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/operators/python.py", line 181, in execute
+    return_value = self.execute_callable()
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/operators/python.py", line 198, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+  File "/opt/airflow/dags/data_pipeline.py", line 155, in transform_and_load_clean
+    df = pd.read_sql_table(TABLE_NAME, schema=SCHEMA_RAW, con=engine_r)
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/sql.py", line 385, in read_sql_table
+    if not pandas_sql.has_table(table_name):
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/sql.py", line 2865, in has_table
+    return len(self.execute(query, [name]).fetchall()) > 0
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/sql.py", line 2672, in execute
+    cur = self.con.cursor()
+AttributeError: 'Engine' object has no attribute 'cursor'
+[2025-05-26T03:46:52.433+0000] {taskinstance.py:1368} INFO - Marking task as FAILED. dag_id=data_pipeline, task_id=transform_and_load_clean, execution_date=20250501T000000, start_date=20250526T034652, end_date=20250526T034652
+[2025-05-26T03:46:52.448+0000] {standard_task_runner.py:104} ERROR - Failed to execute job 27 for task transform_and_load_clean ('Engine' object has no attribute 'cursor'; 6604)
+[2025-05-26T03:46:52.478+0000] {local_task_job_runner.py:232} INFO - Task exited with return code 1
+[2025-05-26T03:46:52.528+0000] {taskinstance.py:2674} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2025-05-26T03:54:25.328+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: data_pipeline.transform_and_load_clean scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-26T03:54:25.342+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: data_pipeline.transform_and_load_clean scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-26T03:54:25.343+0000] {taskinstance.py:1331} INFO - Starting attempt 2 of 2
+[2025-05-26T03:54:25.372+0000] {taskinstance.py:1350} INFO - Executing <Task(PythonOperator): transform_and_load_clean> on 2025-05-01 00:00:00+00:00
+[2025-05-26T03:54:25.390+0000] {standard_task_runner.py:57} INFO - Started process 6758 to run task
+[2025-05-26T03:54:25.399+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'data_pipeline', 'transform_and_load_clean', 'scheduled__2025-05-01T00:00:00+00:00', '--job-id', '34', '--raw', '--subdir', 'DAGS_FOLDER/data_pipeline.py', '--cfg-path', '/tmp/tmpbs3l40kh']
+[2025-05-26T03:54:25.403+0000] {standard_task_runner.py:85} INFO - Job 34: Subtask transform_and_load_clean
+[2025-05-26T03:54:25.497+0000] {task_command.py:410} INFO - Running <TaskInstance: data_pipeline.transform_and_load_clean scheduled__2025-05-01T00:00:00+00:00 [running]> on host 65cea7b09e55
+[2025-05-26T03:54:25.609+0000] {taskinstance.py:1568} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='data_pipeline' AIRFLOW_CTX_TASK_ID='transform_and_load_clean' AIRFLOW_CTX_EXECUTION_DATE='2025-05-01T00:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='2' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2025-05-01T00:00:00+00:00'
+[2025-05-26T03:54:25.640+0000] {warnings.py:109} WARNING - /opt/***/dags/data_pipeline.py:155: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  df = pd.read_sql_query(
+
+[2025-05-26T03:54:25.641+0000] {taskinstance.py:1847} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/operators/python.py", line 181, in execute
+    return_value = self.execute_callable()
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/operators/python.py", line 198, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+  File "/opt/airflow/dags/data_pipeline.py", line 155, in transform_and_load_clean
+    df = pd.read_sql_query(
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/sql.py", line 2672, in execute
+    cur = self.con.cursor()
+AttributeError: 'Engine' object has no attribute 'cursor'
+[2025-05-26T03:54:25.660+0000] {taskinstance.py:1368} INFO - Marking task as FAILED. dag_id=data_pipeline, task_id=transform_and_load_clean, execution_date=20250501T000000, start_date=20250526T035425, end_date=20250526T035425
+[2025-05-26T03:54:25.676+0000] {standard_task_runner.py:104} ERROR - Failed to execute job 34 for task transform_and_load_clean ('Engine' object has no attribute 'cursor'; 6758)
+[2025-05-26T03:54:25.730+0000] {local_task_job_runner.py:232} INFO - Task exited with return code 1
+[2025-05-26T03:54:25.774+0000] {taskinstance.py:2674} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2025-05-26T04:10:56.970+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: data_pipeline.transform_and_load_clean scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-26T04:10:57.003+0000] {taskinstance.py:1125} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: data_pipeline.transform_and_load_clean scheduled__2025-05-01T00:00:00+00:00 [queued]>
+[2025-05-26T04:10:57.004+0000] {taskinstance.py:1331} INFO - Starting attempt 2 of 2
+[2025-05-26T04:10:57.049+0000] {taskinstance.py:1350} INFO - Executing <Task(PythonOperator): transform_and_load_clean> on 2025-05-01 00:00:00+00:00
+[2025-05-26T04:10:57.069+0000] {standard_task_runner.py:57} INFO - Started process 193 to run task
+[2025-05-26T04:10:57.083+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'data_pipeline', 'transform_and_load_clean', 'scheduled__2025-05-01T00:00:00+00:00', '--job-id', '9', '--raw', '--subdir', 'DAGS_FOLDER/data_pipeline.py', '--cfg-path', '/tmp/tmpjy8i0go6']
+[2025-05-26T04:10:57.092+0000] {standard_task_runner.py:85} INFO - Job 9: Subtask transform_and_load_clean
+[2025-05-26T04:10:57.255+0000] {task_command.py:410} INFO - Running <TaskInstance: data_pipeline.transform_and_load_clean scheduled__2025-05-01T00:00:00+00:00 [running]> on host 419e61ae62e7
+[2025-05-26T04:10:57.457+0000] {taskinstance.py:1568} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='data_pipeline' AIRFLOW_CTX_TASK_ID='transform_and_load_clean' AIRFLOW_CTX_EXECUTION_DATE='2025-05-01T00:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='2' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2025-05-01T00:00:00+00:00'
+[2025-05-26T04:10:57.528+0000] {warnings.py:109} WARNING - /opt/***/dags/data_pipeline.py:155: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  df = pd.read_sql_query(
+
+[2025-05-26T04:10:57.532+0000] {taskinstance.py:1847} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/operators/python.py", line 181, in execute
+    return_value = self.execute_callable()
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/operators/python.py", line 198, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+  File "/opt/airflow/dags/data_pipeline.py", line 155, in transform_and_load_clean
+    df = pd.read_sql_query(
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/sql.py", line 2672, in execute
+    cur = self.con.cursor()
+AttributeError: 'Engine' object has no attribute 'cursor'
+[2025-05-26T04:10:57.557+0000] {taskinstance.py:1368} INFO - Marking task as FAILED. dag_id=data_pipeline, task_id=transform_and_load_clean, execution_date=20250501T000000, start_date=20250526T041056, end_date=20250526T041057
+[2025-05-26T04:10:57.581+0000] {standard_task_runner.py:104} ERROR - Failed to execute job 9 for task transform_and_load_clean ('Engine' object has no attribute 'cursor'; 193)
+[2025-05-26T04:10:57.657+0000] {local_task_job_runner.py:232} INFO - Task exited with return code 1
+[2025-05-26T04:10:57.693+0000] {taskinstance.py:2674} INFO - 0 downstream tasks scheduled from follow-on schedule check
