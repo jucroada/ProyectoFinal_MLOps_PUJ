@@ -40,13 +40,11 @@ docker compose up airflow-init
 docker compose up --build -d 
 docker compose down -v --rmi all 
 
-DOCKER_BUILDKIT=0 COMPOSE_DOCKER_CLI_BUILD=0 docker compose up airflow-init
-DOCKER_BUILDKIT=0 COMPOSE_DOCKER_CLI_BUILD=0 docker compose up --build -d
-
 ```
 
 ```bash
 docker compose exec mlops-postgres psql -U airflow -d airflow -c "\l"
+docker compose exec mlops-postgres psql -U airflow -d airflow -c "\dt *.*"
 sudo chown -R estudiante:estudiante dags
 sudo chmod -R u+rwX dags
 
@@ -66,12 +64,11 @@ http://localhost:5000      #   mlflow
 http://localhost:8888        # jupyterlab
 ```
 
-anotación, para hacer tunel hacemos conexión vía ssh para esto usamos
-
-```bash
-
-```
+anotación, para hacer tunel usando port forwarding a traves de la conexión ssh de la vm 
 
 Creación DAGS
 
+```bash 
+docker compose exec mlops-postgres psql -U airflow -d airflow -c "DROP SCHEMA raw_data CASCADE; DROP SCHEMA clean_data CASCADE;"
+```
 

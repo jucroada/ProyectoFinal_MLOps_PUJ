@@ -5,20 +5,28 @@ import pandas as pd
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.sensors.external_task import ExternalTaskSensor
-
+from airflow.exceptions import AirflowSkipException
+from sqlalchemy import create_engine, text
 import mlflow
 from mlflow.tracking import MlflowClient
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import roc_auc_score
+from mlflow import sklearn as mlflow_sklearn
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import GammaRegressor
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 import shap
-from sqlalchemy import create_engine, text
 
-RAW_DB_URI   = os.getenv("RAW_DB_CONN")
-CLEAN_DB_URI = os.getenv("CLEAN_DB_CONN")
-SCHEMA_CLEAN   = "clean_data"
-TABLE_CLEAN    = "clean_data_init"
+# ─── Configuración ─────────────────────────────────────────────────────────────
+CLEAN_DB_URI    = os.getenv("CLEAN_DB_CONN")
+SCHEMA_CLEAN    = "clean_data"
+TABLE_CLEAN     = "clean_data_init"
 EXPERIMENT_NAME = "modeling_pipeline"
+SHARED_TMP      = "/opt/airflow/dags/tmp"
+MAX_SHAP        = 50000
+
+os.makedirs(SHARED_TMP, exist_ok=True)
+mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
 
 default_args = {
     "owner": "airflow",
@@ -26,134 +34,274 @@ default_args = {
     "retry_delay": timedelta(minutes=5),
 }
 
+# ─── DAG ───────────────────────────────────────────────────────────────────────
 with DAG(
     dag_id="modeling_pipeline",
     default_args=default_args,
     start_date=datetime(2025, 5, 1),
-    schedule_interval=None,    # arranca por sensor o trigger
+    schedule_interval="@once",
     catchup=False,
     tags=["modeling","mlflow"],
 ) as dag:
 
-    # 1) Espera a que clean data esté lista
     wait_for_clean = ExternalTaskSensor(
         task_id="wait_for_clean_data",
         external_dag_id="data_pipeline",
         external_task_id="transform_and_load_clean",
         mode="reschedule",
-        poke_interval=60,
-        timeout=60*60,
+        poke_interval=30,
+        timeout=5*60,
     )
 
-    # 2) Carga clean_data y separa train/test
-    def extract_data():
+    # 1) Creamos la tabla con shap_uri
+    def ensure_history_table_fn():
         engine = create_engine(CLEAN_DB_URI)
-        df = pd.read_sql_table(TABLE_CLEAN, schema=SCHEMA_CLEAN, con=engine)
-        # Asumiendo que 'split' ya existe
-        df_train = df[df.split=="train"].drop(columns=["split"])
-        df_test  = df[df.split=="test"].drop(columns=["split"])
-        # Serializa a CSV temp o XCom
-        df_train.to_parquet("/tmp/train.parquet", index=False)
-        df_test.to_parquet("/tmp/test.parquet", index=False)
+        with engine.begin() as conn:
+            # 1) Borrar la tabla si existe
+            conn.execute(text(f"""
+                DROP TABLE IF EXISTS {SCHEMA_CLEAN}.model_history;
+            """))
+            # 2) Crear la tabla con shap_uri en el DDL
+            conn.execute(text(f"""
+                CREATE TABLE {SCHEMA_CLEAN}.model_history (
+                    id             SERIAL PRIMARY KEY,
+                    experiment_id  BIGINT    NOT NULL,
+                    run_id         TEXT       NOT NULL,
+                    model_version  INTEGER    NOT NULL,
+                    new_mse        DOUBLE PRECISION,
+                    new_rmse       DOUBLE PRECISION,
+                    new_mae        DOUBLE PRECISION,
+                    new_r2         DOUBLE PRECISION,
+                    prod_mse       DOUBLE PRECISION,
+                    prod_rmse      DOUBLE PRECISION,
+                    prod_mae       DOUBLE PRECISION,
+                    prod_r2        DOUBLE PRECISION,
+                    promoted       BOOLEAN    NOT NULL,
+                    shap_uri       TEXT,
+                    trained_at     TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
+                );
+            """))
 
-    extract = PythonOperator(
-        task_id="extract_train_test",
-        python_callable=extract_data,
+    ensure_history_table = PythonOperator(
+        task_id="ensure_history_table",
+        python_callable=ensure_history_table_fn,
     )
 
-    # 3) Entrena y registra experimento en MLflow
-    def train_and_log():
+    # 2) Extracción de datos
+    def extract_data_fn():
+        engine   = create_engine(CLEAN_DB_URI)
+        raw_conn = engine.raw_connection()
+        try:
+            df = pd.read_sql_query(f"SELECT * FROM {SCHEMA_CLEAN}.{TABLE_CLEAN}", con=raw_conn)
+        finally:
+            raw_conn.close()
+
+        if df.empty:
+            raise AirflowSkipException("No hay datos en clean_data_init para extraer")
+
+        df_train = df[df["split"]=="train"].drop(columns=["split"])
+        df_test  = df[df["split"]=="test"].drop(columns=["split"])
+        df_train.to_csv(f"{SHARED_TMP}/train.csv", index=False)
+        df_test .to_csv(f"{SHARED_TMP}/test.csv",  index=False)
+        print(f"✅ Extracted {len(df)} rows → {len(df_train)} train / {len(df_test)} test")
+
+    extract_data = PythonOperator(
+        task_id="extract_data",
+        python_callable=extract_data_fn,
+    )
+
+    # 3) Entrenamiento y logging
+    def train_and_log_fn(ti):
         mlflow.set_experiment(EXPERIMENT_NAME)
         with mlflow.start_run() as run:
-            df_train = pd.read_parquet("/tmp/train.parquet")
-            X = df_train.drop(columns=["target"])      # ajusta según tu label
-            y = df_train["target"]
-            model = RandomForestClassifier(n_estimators=50, random_state=42)
-            model.fit(X, y)
+            df_train = pd.read_csv(f"{SHARED_TMP}/train.csv")
+            y_train  = df_train.pop("price")
+            X_train  = df_train.copy()
 
-            # guarda modelo
-            mlflow.sklearn.log_model(model, "model", registered_model_name="my_model")
-            # métricas
-            df_test = pd.read_parquet("/tmp/test.parquet")
-            y_pred = model.predict_proba(df_test.drop(columns=["target"]))[:,1]
-            auc = roc_auc_score(df_test["target"], y_pred)
-            mlflow.log_metric("roc_auc", auc)
+            cats = X_train.select_dtypes(include=["object","category"]).columns.tolist()
+            low_card = [c for c in cats if df_train[c].nunique()<=8]
+            high_card= [c for c in cats if df_train[c].nunique()>8]
+            if high_card:
+                print(f"Descartando cat cols alta cardinalidad: {high_card}")
+            ti.xcom_push("high_card", high_card)
 
-    train = PythonOperator(
-        task_id="train_model",
-        python_callable=train_and_log,
+            X_train = X_train.drop(columns=high_card)
+            num_cols = [c for c in X_train.columns if c not in low_card]
+
+            preproc = ColumnTransformer([
+                ("cat", OneHotEncoder(handle_unknown="ignore", sparse=True), low_card),
+                ("num", StandardScaler(), num_cols),
+            ], remainder="drop")
+
+            pipe = Pipeline([
+                ("preproc", preproc),
+                ("reg", GammaRegressor(max_iter=200))
+            ])
+            pipe.fit(X_train, y_train)
+            mlflow_sklearn.log_model(pipe, "model", registered_model_name="my_model")
+
+            df_test = pd.read_csv(f"{SHARED_TMP}/test.csv")
+            y_test  = df_test.pop("price")
+            X_test  = df_test.drop(columns=high_card, errors="ignore")
+            preds   = pipe.predict(X_test)
+
+            mse  = mean_squared_error(y_test, preds)
+            rmse = mse**0.5
+            mae  = mean_absolute_error(y_test, preds)
+            r2   = r2_score(y_test, preds)
+            for k,v in {"mse":mse,"rmse":rmse,"mae":mae,"r2":r2}.items():
+                mlflow.log_metric(k, v)
+
+    train_and_log = PythonOperator(
+        task_id="train_and_log",
+        python_callable=train_and_log_fn,
     )
 
-    # 4) Evalúa vs producción y promueve si mejora
-    def compare_and_promote():
+    # 4) Evaluación y promoción
+    def evaluate_and_promote_fn(ti):
         client = MlflowClient()
-        # run actual
-        exp = client.get_experiment_by_name(EXPERIMENT_NAME)
-        runs = client.search_runs([exp.experiment_id], order_by=["attributes.start_time desc"], max_results=1)
-        new_run = runs[0]
-        new_auc = new_run.data.metrics["roc_auc"]
+        exp    = client.get_experiment_by_name(EXPERIMENT_NAME)
+        run    = client.search_runs([exp.experiment_id], order_by=["attributes.start_time desc"], max_results=1)[0]
 
-        # coger prod
-        prod_versions = client.get_latest_versions(name="my_model", stages=["Production"])
-        if prod_versions:
-            prod_uri = prod_versions[0].source
-            prod_model = mlflow.sklearn.load_model(prod_uri)
-            df_test = pd.read_parquet("/tmp/test.parquet")
-            y_pred = prod_model.predict_proba(df_test.drop(columns=["target"]))[:,1]
-            prod_auc = roc_auc_score(df_test["target"], y_pred)
+        mv = int(client.search_model_versions(f"name='my_model' and run_id='{run.info.run_id}'")[0].version)
+
+        metrics = {k: run.data.metrics[k] for k in ["mse","rmse","mae","r2"]}
+        df_train = pd.read_csv(f"{SHARED_TMP}/train.csv")
+        high_card = [c for c in df_train.select_dtypes(include=["object","category"]).columns if df_train[c].nunique()>8]
+
+        prod = client.get_latest_versions("my_model", stages=["Production"])
+        if prod:
+            prod_pipe = mlflow.sklearn.load_model(prod[0].source)
+            df_test  = pd.read_csv(f"{SHARED_TMP}/test.csv")
+            df_test  = df_test.drop(columns=["price"]+high_card, errors="ignore")
+            y_test   = pd.read_csv(f"{SHARED_TMP}/test.csv")["price"]
+            p2       = prod_pipe.predict(df_test)
+            prod_metrics = {
+                "prod_mse":  mean_squared_error(y_test, p2),
+                "prod_rmse": None,  # lo calculas igual que arriba
+                "prod_mae":  mean_absolute_error(y_test, p2),
+                "prod_r2":   r2_score(y_test, p2)
+            }
         else:
-            prod_auc = 0.0
+            prod_metrics = {"prod_mse":None,"prod_rmse":None,"prod_mae":None,"prod_r2":float("-inf")}
 
-        # si mejora, promueve
-        if new_auc > prod_auc:
+        promoted = metrics["r2"] > prod_metrics["prod_r2"]
+        if promoted:
             client.transition_model_version_stage(
                 name="my_model",
-                version=int(new_run.data.tags["mlflow.modelVersion"]),
-                stage="Production"
+                version=mv,
+                stage="Production",
+                archive_existing_versions=True
             )
 
-        # guarda historico en BD
-        engine = create_engine(RAW_DB_URI)  # o CLEAN_DB_URI
-        engine.execute(text("""
-            INSERT INTO model_history(run_id, new_auc, prod_auc, promoted, ts)
-            VALUES (:rid, :na, :pa, :pr, now())
-        """), {
-            "rid": new_run.info.run_id,
-            "na": new_auc,
-            "pa": prod_auc,
-            "pr": new_auc>prod_auc
-        })
+        ti.xcom_push("cmp", {**metrics, **prod_metrics, "exp_id": exp.experiment_id,
+                             "run_id": run.info.run_id, "mv": mv, "promoted": promoted})
 
-    evaluate = PythonOperator(
-        task_id="compare_and_promote",
-        python_callable=compare_and_promote,
-        execution_timeout=timedelta(minutes=10),
+    evaluate_and_promote = PythonOperator(
+        task_id="evaluate_and_promote",
+        python_callable=evaluate_and_promote_fn,
     )
 
-    # 5) Genera SHAP values y registra artefacto
-    def compute_shap():
-        mlflow.set_experiment(EXPERIMENT_NAME)
-        client = MlflowClient()
-        exp = client.get_experiment_by_name(EXPERIMENT_NAME)
-        runs = client.search_runs([exp.experiment_id], order_by=["attributes.start_time desc"], max_results=1)
-        run = runs[0]
-        model_uri = f"runs:/{run.info.run_id}/model"
-        model = mlflow.sklearn.load_model(model_uri)
+    # 5) Computar SHAP y registrar URI
+    def compute_shap_fn(ti):
+        # 1) Tiramos del diccionario completo que guardó evaluate_and_promote
+        cmp = ti.xcom_pull(task_ids="evaluate_and_promote", key="cmp")
+        if not cmp:
+            raise AirflowSkipException("No se encontró información de métricas (cmp) para compute_shap")
 
-        df_test = pd.read_parquet("/tmp/test.parquet")
-        X_test = df_test.drop(columns=["target"])
-        explainer = shap.Explainer(model, X_test)
-        shap_vals = explainer(X_test)
+        # 2) Tiramos de la lista de columnas de alta cardinalidad que guardó train_and_log
+        high_card = ti.xcom_pull(task_ids="train_and_log", key="high_card") or []
 
-        # guardar como artefacto (por simplicidad parquet)
-        shap_df = pd.DataFrame(shap_vals.values, columns=X_test.columns)
-        shap_df.to_parquet("/tmp/shap_values.parquet", index=False)
-        mlflow.log_artifact("/tmp/shap_values.parquet", artifact_path="shap_values")
+        run_id = cmp["run_id"]
+        pipeline = mlflow_sklearn.load_model(f"runs:/{run_id}/model")
+        preproc  = pipeline.named_steps["preproc"]
+        reg      = pipeline.named_steps["reg"]
 
-    shap_task = PythonOperator(
+        df_test = pd.read_csv(f"{SHARED_TMP}/test.csv")
+        X_test  = df_test.drop(columns=["price"] + high_card, errors="ignore")
+        if len(X_test) > MAX_SHAP:
+            X_test = X_test.sample(n=MAX_SHAP, random_state=42)
+        X_trans = preproc.transform(X_test)
+
+        explainer = shap.LinearExplainer(reg, X_trans, feature_perturbation="interventional")
+        shap_vals = explainer.shap_values(X_trans)
+        cols = preproc.get_feature_names_out()
+        shap_df = pd.DataFrame(shap_vals, columns=cols)
+
+        path = f"{SHARED_TMP}/shap_values.parquet"
+        shap_df.to_parquet(path, index=False)
+        mlflow.log_artifact(path, artifact_path="shap_values")
+
+        # registramos la URI completa
+        shap_uri = mlflow.get_artifact_uri("shap_values/shap_values.parquet")
+        ti.xcom_push(key="shap_uri", value=shap_uri)
+
+        print("✅ SHAP generado y URI registrada:", shap_uri)
+
+    compute_shap = PythonOperator(
         task_id="compute_shap",
-        python_callable=compute_shap,
+        python_callable=compute_shap_fn,
         execution_timeout=timedelta(minutes=10),
     )
 
-    wait_for_clean >> extract >> train >> evaluate >> shap_task
+    # 6) Finalmente: insertar todo en model_history, incluyendo shap_uri
+    def record_history_fn(ti):
+        # 1) Pull de XComs con task_ids y key
+        cmp = ti.xcom_pull(task_ids="evaluate_and_promote", key="cmp")
+        shap_uri = ti.xcom_pull(task_ids="compute_shap", key="shap_uri")
+
+        # 2) Validaciones
+        if cmp is None:
+            raise AirflowSkipException("No se encontró información de métricas en XCom (cmp).")
+        if shap_uri is None:
+            raise AirflowSkipException("No se encontró shap_uri en XCom.")
+
+        # 3) Preparar payload
+        payload = {
+            "exp_id":    int(cmp["exp_id"]),
+            "run_id":    cmp["run_id"],
+            "mv":        int(cmp["mv"]),
+            "new_mse":   cmp["mse"],
+            "new_rmse":  cmp["rmse"],
+            "new_mae":   cmp["mae"],
+            "new_r2":    cmp["r2"],
+            "prod_mse":  cmp["prod_mse"],
+            "prod_rmse": cmp["prod_rmse"],
+            "prod_mae":  cmp["prod_mae"],
+            "prod_r2":   None if cmp["prod_r2"] == float("-inf") else cmp["prod_r2"],
+            "promoted":  bool(cmp["promoted"]),
+            "shap_uri":  shap_uri
+        }
+
+        # 4) Inserción en la tabla
+        engine = create_engine(CLEAN_DB_URI)
+        with engine.begin() as conn:
+            conn.execute(text(f"""
+                INSERT INTO {SCHEMA_CLEAN}.model_history (
+                  experiment_id, run_id, model_version,
+                  new_mse, new_rmse, new_mae, new_r2,
+                  prod_mse, prod_rmse, prod_mae, prod_r2,
+                  promoted, shap_uri
+                ) VALUES (
+                  :exp_id, :run_id, :mv,
+                  :new_mse, :new_rmse, :new_mae, :new_r2,
+                  :prod_mse, :prod_rmse, :prod_mae, :prod_r2,
+                  :promoted, :shap_uri
+                )
+            """), payload)
+
+        print("✅ Registro en model_history insertado con shap_uri:", shap_uri)
+
+    record_history = PythonOperator(
+        task_id="record_model_history",
+        python_callable=record_history_fn,
+    )
+
+    # ─── Flujo de dependencias ────────────────────────────────────────────────
+    wait_for_clean \
+        >> ensure_history_table \
+        >> extract_data \
+        >> train_and_log \
+        >> evaluate_and_promote \
+        >> compute_shap \
+        >> record_history

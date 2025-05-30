@@ -35,6 +35,7 @@ x-airflow-common:
     AWS_ACCESS_KEY_ID: admin
     AWS_SECRET_ACCESS_KEY: supersecret
     MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+    MLFLOW_TRACKING_URI: http://mlflow:5000
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
@@ -221,7 +222,8 @@ services:
       _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME:-airflow}
       _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-airflow}
       _PIP_ADDITIONAL_REQUIREMENTS: ''
-    user: "${AIRFLOW_UID:-50000}:${AIRFLOW_GID:-0}"
+    # user: "${AIRFLOW_UID:-50000}:${AIRFLOW_GID:-0}"
+    user: "0:0"
     volumes:
       - ${AIRFLOW_PROJ_DIR:-.}:/sources
 
