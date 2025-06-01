@@ -115,41 +115,70 @@ with DAG(
         mlflow.set_experiment(EXPERIMENT_NAME)
         with mlflow.start_run() as run:
             df_train = pd.read_csv(f"{SHARED_TMP}/train.csv")
-            y_train  = df_train.pop("price")
-            X_train  = df_train.copy()
-
+            FEATURES = [
+                "brokered_by", "status", "bed", "bath", "acre_lot",
+                "street", "city", "state", "zip_code", "house_size", "prev_sold_date"
+            ]
+            for c in ["street", "city", "state", "status", "zip_code"]:
+                if c in df_train.columns:
+                    df_train[c] = df_train[c].astype(str)
+            print("Dtypes en X_train antes de entrenar:")
+            print(df_train.dtypes)
+            print("Ejemplo de valores de street:", df_train['street'].head(10))
+            y_train = df_train.pop("price")
+            # Filtrar solo las columnas válidas
+            X_train = df_train[[col for col in FEATURES if col in df_train.columns]].copy()
+            # Validación de columnas faltantes
+            missing = [c for c in FEATURES if c not in X_train.columns]
+            if missing:
+                print(f"⚠️  Warning: faltan columnas esperadas en los datos: {missing}")
+            # Guardar features usadas en MLflow
+            import json
+            with open(f"{SHARED_TMP}/features.json", "w") as f:
+                json.dump(FEATURES, f)
+            mlflow.log_artifact(f"{SHARED_TMP}/features.json", artifact_path="features")
+            # Revisa NaN
+            assert not X_train.isnull().any().any(), "Hay NaN en X_train"
+            assert not y_train.isnull().any(), "Hay NaN en y_train"
+            # Definición de columnas categóricas y numéricas
             cats = X_train.select_dtypes(include=["object","category"]).columns.tolist()
             low_card = [c for c in cats if df_train[c].nunique()<=8]
             high_card= [c for c in cats if df_train[c].nunique()>8]
             if high_card:
                 print(f"Descartando cat cols alta cardinalidad: {high_card}")
             ti.xcom_push("high_card", high_card)
-
             X_train = X_train.drop(columns=high_card)
             num_cols = [c for c in X_train.columns if c not in low_card]
-
+            print(f"X_train shape: {X_train.shape}, num_cols: {num_cols}, low_card: {low_card}")
             preproc = ColumnTransformer([
                 ("cat", OneHotEncoder(handle_unknown="ignore", sparse=True), low_card),
                 ("num", StandardScaler(), num_cols),
             ], remainder="drop")
-
+            X_train_trans = preproc.fit_transform(X_train)
+            assert X_train_trans.shape[0] == X_train.shape[0]
             pipe = Pipeline([
                 ("preproc", preproc),
                 ("reg", GammaRegressor(max_iter=200))
             ])
             pipe.fit(X_train, y_train)
+            final_features = list(X_train.columns)
+            with open(f"{SHARED_TMP}/final_features.json", "w") as f:
+                json.dump(final_features, f)
+            mlflow.log_artifact(f"{SHARED_TMP}/final_features.json", artifact_path="features")
             mlflow_sklearn.log_model(pipe, "model", registered_model_name="my_model")
-
             df_test = pd.read_csv(f"{SHARED_TMP}/test.csv")
-            y_test  = df_test.pop("price")
-            X_test  = df_test.drop(columns=high_card, errors="ignore")
-            preds   = pipe.predict(X_test)
-
-            mse  = mean_squared_error(y_test, preds)
-            rmse = mse**0.5
-            mae  = mean_absolute_error(y_test, preds)
-            r2   = r2_score(y_test, preds)
-            for k,v in {"mse":mse,"rmse":rmse,"mae":mae,"r2":r2}.items():
+            for c in ["street", "city", "state", "status", "zip_code"]:
+                if c in df_test.columns:
+                    df_test[c] = df_test[c].astype(str)
+            X_test = df_test[[col for col in FEATURES if col in df_test.columns]].copy()
+            y_test = df_test["price"]
+            X_test = X_test.drop(columns=high_card, errors="ignore")
+            preds = pipe.predict(X_test)
+            mse = mean_squared_error(y_test, preds)
+            rmse = mse ** 0.5
+            mae = mean_absolute_error(y_test, preds)
+            r2 = r2_score(y_test, preds)
+            for k, v in {"mse": mse, "rmse": rmse, "mae": mae, "r2": r2}.items():
                 mlflow.log_metric(k, v)
 
     train_and_log = PythonOperator(
@@ -230,12 +259,10 @@ with DAG(
 
         path = f"{SHARED_TMP}/shap_values.parquet"
         shap_df.to_parquet(path, index=False)
-        mlflow.log_artifact(path, artifact_path="shap_values")
-
-        # registramos la URI completa
-        shap_uri = mlflow.get_artifact_uri("shap_values/shap_values.parquet")
+        with mlflow.start_run(run_id=run_id):
+            mlflow.log_artifact(path, artifact_path="shap_values")
+            shap_uri = mlflow.get_artifact_uri("shap_values/shap_values.parquet")
         ti.xcom_push(key="shap_uri", value=shap_uri)
-
         print("✅ SHAP generado y URI registrada:", shap_uri)
 
     compute_shap = PythonOperator(

@@ -302,6 +302,26 @@ services:
       - minio
     restart: always
 
+  fastapi:
+    build: ./FastAPI
+    container_name: fastapi
+    environment:
+      MLFLOW_TRACKING_URI: "http://mlflow:5000"
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: supersecret
+      MLFLOW_S3_BUCKET: "mlflows3"
+      MLFLOW_S3_ENDPOINT_URL: "http://minio:9000"
+      RAW_DB_CONN: postgresql+psycopg2://airflow:airflow@mlops-postgres:5432/airflow
+      CLEAN_DB_CONN: postgresql+psycopg2://airflow:airflow@mlops-postgres:5432/airflow
+    ports:
+      - "8989:8989"
+    volumes:
+      - ./FastAPI:/app
+    depends_on:
+      - mlops-postgres
+      - mlflow
+      - minio
+    restart: always
 
 #################################################################################################################
 ##  Servicio de experimentación 

@@ -45,14 +45,11 @@ docker compose down -v --rmi all
 ```bash
 docker compose exec mlops-postgres psql -U airflow -d airflow -c "\l"
 docker compose exec mlops-postgres psql -U airflow -d airflow -c "\dt *.*"
-sudo chown -R estudiante:estudiante dags
-sudo chmod -R u+rwX dags
+
 
 ```
 
-```bash
-export DOCKER_BUILDKIT=0
-```
+
 
 
 **Nota:** Trabajaremos con fernet key
@@ -70,5 +67,45 @@ Creación DAGS
 
 ```bash 
 docker compose exec mlops-postgres psql -U airflow -d airflow -c "DROP SCHEMA raw_data CASCADE; DROP SCHEMA clean_data CASCADE;"
+docker compose restart fastapi
+
 ```
+
+ejemplos de prueba para la api
+
+```plaintext 
+{
+  "features": {
+    "brokered_by": 101,
+    "status": "for sale",
+    "bed": 3,
+    "bath": 2,
+    "acre_lot": 0.25,
+    "street": "123 elm st",
+    "city": "springfield",
+    "state": "illinois",
+    "zip_code": "62704",
+    "house_size": 1500,
+    "prev_sold_date": "2022-03-15"
+  }
+}
+{
+  "features": {
+    "brokered_by": 55,
+    "status": "for sale",
+    "bed": 4,
+    "bath": 3,
+    "acre_lot": 0.4,
+    "street": "456 oak ave",
+    "city": "shelbyville",
+    "state": "illinois",
+    "zip_code": "62565",
+    "house_size": 1800,
+    "prev_sold_date": "2023-01-22"
+  }
+}
+
+```
+
+
 
