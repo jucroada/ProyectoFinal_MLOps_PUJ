@@ -2,3 +2,4 @@ logs/
 dags/__pycache__/
 dags/*.pyc
 dags/tmp/
+FastAPI/app/__pycache__

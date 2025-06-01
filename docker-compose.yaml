@@ -323,6 +323,17 @@ services:
       - minio
     restart: always
 
+  streamlit:
+    build: ./streamlit  
+    container_name: mlops_streamlit
+    restart: unless-stopped
+    ports:
+      - "8501:8501"
+    environment:
+      - API_URL=http://fastapi:8989  
+    depends_on:
+      - fastapi
+
 #################################################################################################################
 ##  Servicio de experimentación 
 
