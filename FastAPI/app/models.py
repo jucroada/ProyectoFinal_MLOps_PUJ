@@ -16,7 +16,9 @@ class ModelUpdatePayload(BaseModel):
 
 class HistoryEntry(BaseModel):
     experiment_id: int
+    model_name  : str
     run_id: str
+    run_name: str
     model_version: int
     new_mse: float
     new_rmse: float

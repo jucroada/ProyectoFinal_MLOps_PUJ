@@ -39,7 +39,8 @@ with DAG(
     dag_id="modeling_pipeline",
     default_args=default_args,
     start_date=datetime(2025, 5, 1),
-    schedule_interval="@once",
+    # schedule_interval="@once",
+    schedule_interval="*/5 * * * *",
     catchup=False,
     tags=["modeling","mlflow"],
 ) as dag:
@@ -57,16 +58,13 @@ with DAG(
     def ensure_history_table_fn():
         engine = create_engine(CLEAN_DB_URI)
         with engine.begin() as conn:
-            # 1) Borrar la tabla si existe
             conn.execute(text(f"""
-                DROP TABLE IF EXISTS {SCHEMA_CLEAN}.model_history;
-            """))
-            # 2) Crear la tabla con shap_uri en el DDL
-            conn.execute(text(f"""
-                CREATE TABLE {SCHEMA_CLEAN}.model_history (
+                CREATE TABLE IF NOT EXISTS {SCHEMA_CLEAN}.model_history (
                     id             SERIAL PRIMARY KEY,
                     experiment_id  BIGINT    NOT NULL,
+                    model_name     TEXT       NOT NULL,
                     run_id         TEXT       NOT NULL,
+                    run_name       TEXT      NOT NULL,
                     model_version  INTEGER    NOT NULL,
                     new_mse        DOUBLE PRECISION,
                     new_rmse       DOUBLE PRECISION,
@@ -178,6 +176,8 @@ with DAG(
             rmse = mse ** 0.5
             mae = mean_absolute_error(y_test, preds)
             r2 = r2_score(y_test, preds)
+            run_name = run.data.tags.get("mlflow.runName", None)
+            ti.xcom_push("run_name", run_name)
             for k, v in {"mse": mse, "rmse": rmse, "mae": mae, "r2": r2}.items():
                 mlflow.log_metric(k, v)
 
@@ -212,9 +212,9 @@ with DAG(
                 "prod_r2":   r2_score(y_test, p2)
             }
         else:
-            prod_metrics = {"prod_mse":None,"prod_rmse":None,"prod_mae":None,"prod_r2":float("-inf")}
+            prod_metrics = {"prod_mse":None,"prod_rmse":None,"prod_mae":float("inf"),"prod_r2":float("-inf")}
 
-        promoted = metrics["r2"] > prod_metrics["prod_r2"]
+        promoted = metrics["mae"] < prod_metrics["prod_mae"]
         if promoted:
             client.transition_model_version_stage(
                 name="my_model",
@@ -222,7 +222,8 @@ with DAG(
                 stage="Production",
                 archive_existing_versions=True
             )
-
+        
+        promoted = int(promoted)
         ti.xcom_push("cmp", {**metrics, **prod_metrics, "exp_id": exp.experiment_id,
                              "run_id": run.info.run_id, "mv": mv, "promoted": promoted})
 
@@ -276,6 +277,7 @@ with DAG(
         # 1) Pull de XComs con task_ids y key
         cmp = ti.xcom_pull(task_ids="evaluate_and_promote", key="cmp")
         shap_uri = ti.xcom_pull(task_ids="compute_shap", key="shap_uri")
+        run_name = ti.xcom_pull(task_ids="train_and_log", key="run_name")
 
         # 2) Validaciones
         if cmp is None:
@@ -286,7 +288,9 @@ with DAG(
         # 3) Preparar payload
         payload = {
             "exp_id":    int(cmp["exp_id"]),
+            "model_name": "my_model",
             "run_id":    cmp["run_id"],
+            "run_name": run_name,
             "mv":        int(cmp["mv"]),
             "new_mse":   cmp["mse"],
             "new_rmse":  cmp["rmse"],
@@ -305,12 +309,12 @@ with DAG(
         with engine.begin() as conn:
             conn.execute(text(f"""
                 INSERT INTO {SCHEMA_CLEAN}.model_history (
-                  experiment_id, run_id, model_version,
+                  experiment_id, model_name, run_id, run_name, model_version,
                   new_mse, new_rmse, new_mae, new_r2,
                   prod_mse, prod_rmse, prod_mae, prod_r2,
                   promoted, shap_uri
                 ) VALUES (
-                  :exp_id, :run_id, :mv,
+                  :exp_id, :model_name, :run_id, :run_name, :mv,
                   :new_mse, :new_rmse, :new_mae, :new_r2,
                   :prod_mse, :prod_rmse, :prod_mae, :prod_r2,
                   :promoted, :shap_uri

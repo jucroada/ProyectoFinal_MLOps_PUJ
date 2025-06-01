@@ -334,17 +334,6 @@ services:
     depends_on:
       - fastapi
 
-#################################################################################################################
-##  Servicio de experimentación 
-
-  jupyter:
-    build: ./jupyterlab
-    container_name: jupyter
-    ports:
-      - "8888:8888"
-    volumes:
-      - ./jupyterlab:/app
-
 
 # Declaración de volumenes 
 volumes:

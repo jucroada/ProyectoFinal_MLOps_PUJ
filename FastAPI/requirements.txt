@@ -13,3 +13,4 @@ psutil==5.9.5
 sqlalchemy>=1.4.0
 pyarrow>=10.0.1
 fastparquet
+prometheus_client==0.20.0

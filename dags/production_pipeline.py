@@ -27,7 +27,8 @@ with DAG(
     dag_id="production_pipeline",
     default_args=default_args,
     start_date=datetime(2025, 5, 1),
-    schedule_interval="@once",     # o puede ser '@daily' si lo quieres correr periódicamente
+    # schedule_interval="@once",     
+    schedule_interval="*/5 * * * *",
     catchup=False,
     tags=["production"],
 ) as dag:

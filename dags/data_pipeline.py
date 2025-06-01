@@ -31,7 +31,8 @@ with DAG(
     default_args=default_args,
     start_date=datetime(2025, 5, 1),
     # schedule_interval="@hourly",
-    schedule_interval="@once",
+    # schedule_interval="@once",
+    schedule_interval="*/5 * * * *",
     catchup=False,
     tags=["raw","ingestion","dataSource"],
 ) as dag:
