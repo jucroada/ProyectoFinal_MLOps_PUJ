@@ -30,9 +30,9 @@ with DAG(
     dag_id="data_pipeline",
     default_args=default_args,
     start_date=datetime(2025, 5, 1),
-    # schedule_interval="@hourly",
+    schedule_interval="@hourly",
     # schedule_interval="@once",
-    schedule_interval="*/5 * * * *",
+    # schedule_interval="*/5 * * * *", # 5 minutos
     catchup=False,
     tags=["raw","ingestion","dataSource"],
 ) as dag:

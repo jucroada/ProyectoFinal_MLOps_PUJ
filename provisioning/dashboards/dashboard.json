@@ -1,0 +1,68 @@
+{
+  "title": "Dashboard Unificado - FastAPI MLOps - Precio Vivienda",
+  "timezone": "browser",
+  "refresh": "5s",
+  "schemaVersion": 36,
+  "version": 3,
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Total de predicciones",
+      "targets": [{ "expr": "predict_requests_total", "refId": "A" }],
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Tasa de predicciones por segundo",
+      "targets": [{ "expr": "rate(predict_requests_total[1m])", "refId": "B" }],
+      "gridPos": { "x": 6, "y": 0, "w": 18, "h": 8 }
+    },
+    {
+      "type": "stat",
+      "title": "Latencia promedio (s)",
+      "targets": [
+        {
+          "expr": "rate(predict_latency_seconds_sum[1m]) / rate(predict_latency_seconds_count[1m])",
+          "refId": "C"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 4, "w": 6, "h": 4 }
+    },
+    {
+      "type": "gauge",
+      "title": "Uptime de la API",
+      "targets": [{ "expr": "api_uptime", "refId": "D" }],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 1
+        }
+      },
+      "gridPos": { "x": 6, "y": 4, "w": 6, "h": 4 }
+    },
+    {
+      "type": "stat",
+      "title": "Memoria usada (MB)",
+      "targets": [{ "expr": "process_resident_memory_bytes / 1024 / 1024", "refId": "E" }],
+      "gridPos": { "x": 12, "y": 4, "w": 6, "h": 4 }
+    },
+    {
+      "type": "stat",
+      "title": "CPU usado (s)",
+      "targets": [{ "expr": "process_cpu_seconds_total", "refId": "F" }],
+      "gridPos": { "x": 18, "y": 4, "w": 6, "h": 4 }
+    },
+    {
+      "type": "stat",
+      "title": "Tiempo activo (s)",
+      "targets": [{ "expr": "time() - process_start_time_seconds", "refId": "G" }],
+      "gridPos": { "x": 0, "y": 8, "w": 6, "h": 4 }
+    },
+    {
+      "type": "stat",
+      "title": "GC total",
+      "targets": [{ "expr": "sum(python_gc_collections_total)", "refId": "H" }],
+      "gridPos": { "x": 6, "y": 8, "w": 6, "h": 4 }
+    }
+  ]
+}
