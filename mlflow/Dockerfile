@@ -5,3 +5,5 @@ COPY requirements.txt /requirements.txt
 
 # Instalar las dependencias listadas en el requirements.txt
 RUN pip install --no-cache-dir -r /requirements.txt
+
+EXPOSE 5000

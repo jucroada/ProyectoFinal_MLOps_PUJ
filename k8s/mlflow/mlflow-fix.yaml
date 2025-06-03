@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mlflow
+  template:
+    metadata:
+      labels:
+        app: mlflow
+    spec:
+      initContainers:
+      - name: init-db
+        image: postgres:13
+        command:
+        - /bin/bash
+        - -c
+        - |
+          echo "Esperando a que PostgreSQL esté listo..."
+          until pg_isready -h mlops-postgres -U airflow; do
+            echo "PostgreSQL no está listo - esperando..."
+            sleep 5
+          done
+          
+          echo "PostgreSQL está listo, verificando si la base de datos mlflow existe..."
+          export PGPASSWORD=airflow
+          if psql -h mlops-postgres -U airflow -lqt | cut -d \| -f 1 | grep -qw mlflow; then
+            echo "La base de datos mlflow ya existe."
+          else
+            echo "Creando base de datos mlflow..."
+            psql -h mlops-postgres -U airflow -c "CREATE DATABASE mlflow;"
+            echo "Base de datos mlflow creada."
+          fi
+      containers:
+      - name: mlflow
+        image: blutenherz/mlflow-mlops:1.0.0
+        command: ["mlflow", "server"]
+        args:
+          - "--host=0.0.0.0"
+          - "--port=5000"
+          - "--backend-store-uri=postgresql+psycopg2://airflow:airflow@mlops-postgres:5432/mlflow"
+          - "--default-artifact-root=s3://mlflows3/artifacts"
+        env:
+        - name: MLFLOW_S3_ENDPOINT_URL
+          value: http://minio:9000
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: minio-credentials
+              key: access-key
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-credentials
+              key: secret-key
+        ports:
+        - containerPort: 5000
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 15

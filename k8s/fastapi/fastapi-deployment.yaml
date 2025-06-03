@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fastapi
+  template:
+    metadata:
+      labels:
+        app: fastapi
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8989"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: fastapi
+          image: blutenherz/fastapi-mlops:2.0.0
+          ports:
+            - containerPort: 8989
+              name: http
+          env:
+            - name: MLFLOW_TRACKING_URI
+              value: "http://mlflow:5000"
+            - name: RAW_DB_CONN
+              value: "postgresql+psycopg2://airflow:airflow@mlops-postgres:5432/airflow"
+            - name: CLEAN_DB_CONN
+              value: "postgresql+psycopg2://airflow:airflow@mlops-postgres:5432/airflow"
+            - name: AWS_ACCESS_KEY_ID
+              value: "admin"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "supersecret"
+            - name: MLFLOW_S3_BUCKET 
+              value: "mlflows3"
+            - name: MLFLOW_S3_ENDPOINT_URL
+              value: "http://minio:9000"
+            - name: ENABLE_METRICS
+              value: "true"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 15

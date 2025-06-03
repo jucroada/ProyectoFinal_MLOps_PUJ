@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: airflow-config
+data:
+  AIRFLOW__CORE__EXECUTOR: "CeleryExecutor"
+  AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: "postgresql+psycopg2://airflow:airflow@mlops-postgres/airflow"
+  AIRFLOW__CORE__SQL_ALCHEMY_CONN: "postgresql+psycopg2://airflow:airflow@mlops-postgres/airflow"
+  AIRFLOW__CELERY__RESULT_BACKEND: "db+postgresql://airflow:airflow@mlops-postgres/airflow"
+  AIRFLOW__CELERY__BROKER_URL: "redis://:@redis:6379/0"
+  RAW_DB_CONN: "postgresql+psycopg2://airflow:airflow@mlops-postgres:5432/airflow"
+  CLEAN_DB_CONN: "postgresql+psycopg2://airflow:airflow@mlops-postgres:5432/airflow"
+  DB_GET_DATA: "http://10.43.101.108:80/data?group_number=6&day=Wednesday"
+  DB_FORMAT_DATA: "http://10.43.101.108:80/restart_data_generation?group_number=6&day=Wednesday"
+  AIRFLOW__CORE__FERNET_KEY: ""
+  AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+  AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+  AIRFLOW__API__AUTH_BACKENDS: "airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session"
+  AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: "true"
+  AIRFLOW__SCHEDULER__HEALTH_CHECK_SERVER__PORT: "8974"
+  MLFLOW_S3_ENDPOINT_URL: "http://minio:9000"
+  MLFLOW_TRACKING_URI: "http://mlflow:5000"
+  MLFLOW_HTTP_REQUEST_TIMEOUT: "120"
+  MLFLOW_TRACKING_REQUEST_TIMEOUT: "120"
+  MLFLOW_TRACKING_INSECURE_TLS: "true"
+  AWS_ACCESS_KEY_ID: "admin"
+  AWS_SECRET_ACCESS_KEY: "supersecret"
+  AIRFLOW__CELERY__WORKER_CONCURRENCY: "2"
+  AIRFLOW__CORE__PARALLELISM: "4"
+  AIRFLOW__CORE__DAG_CONCURRENCY: "2"
+  AIRFLOW__SCHEDULER__MAX_THREADS: "2"

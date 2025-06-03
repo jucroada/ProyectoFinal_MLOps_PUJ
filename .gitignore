@@ -3,3 +3,4 @@ dags/__pycache__/
 dags/*.pyc
 dags/tmp/
 FastAPI/app/__pycache__
+k8s/backup/

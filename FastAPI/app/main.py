@@ -288,6 +288,10 @@ def predict_shap(request: PredictRequest = Body(...)):
         "model_version": active_version
     }
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
 # Endpoint de métricas
 @app.get("/metrics")
 def metrics():

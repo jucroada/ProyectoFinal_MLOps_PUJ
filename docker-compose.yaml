@@ -5,7 +5,8 @@ x-airflow-common:
   # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose.yaml
   # and uncomment the "build" line below, Then run `docker-compose build` to build the images.
   # image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.6.0}
-  build: ./airflow
+  # build: ./airflow
+  image: blutenherz/airflow-mlops:1.0.0
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
@@ -266,9 +267,9 @@ services:
 
 
   minio:
-    build:
-      context: ./minio
-    #image: minio/minio
+    # build:
+    #   context: ./minio
+    image: blutenherz/minio-mlops:1.0.0
     container_name: minio
     #command: server /data --console-address ":9001"
     environment:
@@ -282,8 +283,8 @@ services:
     restart: always
 
   mlflow:
-    build: ./mlflow
-    # image: ghcr.io/mlflow/mlflow:v2.10.0
+    # build: ./mlflow
+    image: blutenherz/mlflow-mlops:1.0.0
     container_name: mlflow
     environment:
       AWS_ACCESS_KEY_ID: admin
@@ -303,7 +304,8 @@ services:
     restart: always
 
   fastapi:
-    build: ./FastAPI
+    # build: ./FastAPI
+    image: blutenherz/fastapi-mlops:1.0.0
     container_name: fastapi
     environment:
       MLFLOW_TRACKING_URI: "http://mlflow:5000"
@@ -324,7 +326,8 @@ services:
     restart: always
 
   streamlit:
-    build: ./streamlit  
+    # build: ./streamlit  
+    image: blutenherz/streamlit-mlops:1.0.0
     container_name: mlops_streamlit
     restart: unless-stopped
     ports:

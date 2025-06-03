@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: streamlit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: streamlit
+  template:
+    metadata:
+      labels:
+        app: streamlit
+    spec:
+      containers:
+        - name: streamlit
+          image: blutenherz/streamlit-mlops:1.0.0
+          ports:
+            - containerPort: 8501
+          env:
+            - name: API_URL
+              value: "http://fastapi:8989"
