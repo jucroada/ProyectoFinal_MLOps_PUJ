@@ -1,0 +1,6 @@
+apiVersion: v2
+name: streamlit
+description: Streamlit para interfaz de usuario
+type: application
+version: 0.1.0
+appVersion: "1.0.0" 

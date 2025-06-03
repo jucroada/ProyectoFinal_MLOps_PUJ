@@ -1,0 +1,25 @@
+{{- if .Values.persistence.logs.enabled }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: airflow-logs-pv
+spec:
+  capacity:
+    storage: {{ .Values.persistence.logs.size }}
+  accessModes:
+    - {{ .Values.persistence.logs.accessMode }}
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: {{ .Values.persistence.logs.hostPath }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: airflow-logs-pvc
+spec:
+  accessModes:
+    - {{ .Values.persistence.logs.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.logs.size }}
+{{- end }} 

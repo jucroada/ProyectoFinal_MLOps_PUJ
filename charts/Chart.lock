@@ -1,0 +1,33 @@
+dependencies:
+- name: secrets
+  repository: file://./secrets
+  version: 0.1.0
+- name: postgres
+  repository: file://./postgres
+  version: 0.1.0
+- name: redis
+  repository: file://./redis
+  version: 0.1.0
+- name: minio
+  repository: file://./minio
+  version: 0.1.0
+- name: mlflow
+  repository: file://./mlflow
+  version: 0.1.0
+- name: airflow
+  repository: file://./airflow
+  version: 0.1.0
+- name: fastapi
+  repository: file://./fastapi
+  version: 0.1.0
+- name: prometheus
+  repository: file://./prometheus
+  version: 0.1.0
+- name: grafana
+  repository: file://./grafana
+  version: 0.1.0
+- name: streamlit
+  repository: file://./streamlit
+  version: 0.1.0
+digest: sha256:3f5773bc0f2f1a903c9d6f87657e114b11f26c83da168699ee12adaa07543c04
+generated: "2025-06-03T11:57:09.7553574-05:00"

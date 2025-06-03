@@ -1,0 +1,29 @@
+image:
+  repository: blutenherz/minio-mlops
+  tag: 1.0.0
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  ports:
+    api:
+      port: 9000
+      targetPort: 9000
+    console:
+      port: 9001
+      targetPort: 9001
+
+credentials:
+  rootUser: admin
+  rootPassword: supersecret
+
+persistence:
+  enabled: true
+  type: emptyDir
+  mountPath: /data
+
+args:
+  - server
+  - /data
+  - --console-address
+  - :9001 

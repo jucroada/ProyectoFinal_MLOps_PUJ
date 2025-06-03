@@ -1,0 +1,44 @@
+image:
+  repository: blutenherz/fastapi-mlops
+  tag: 2.0.0
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8989
+
+mlflow:
+  host: mlflow
+  port: 5000
+
+database:
+  host: mlops-postgres
+  port: 5432
+  user: airflow
+  password: airflow
+  name: airflow
+
+minio:
+  accessKey: admin
+  secretKey: supersecret
+  bucket: mlflows3
+  endpoint: http://minio:9000
+
+metrics:
+  enabled: true
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8989"
+    prometheus.io/path: "/metrics"
+
+probes:
+  readiness:
+    path: /health
+    port: http
+    initialDelaySeconds: 10
+    periodSeconds: 5
+  liveness:
+    path: /health
+    port: http
+    initialDelaySeconds: 30
+    periodSeconds: 15 

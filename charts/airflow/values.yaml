@@ -1,0 +1,89 @@
+image:
+  repository: blutenherz/airflow-mlops
+  tag: 1.0.0
+  pullPolicy: IfNotPresent
+
+persistence:
+  logs:
+    enabled: true
+    size: 1Gi
+    storageClass: standard
+    accessMode: ReadWriteMany
+    hostPath: /tmp/airflow-logs
+
+service:
+  type: ClusterIP
+  port: 8080
+
+database:
+  host: mlops-postgres
+  port: 5432
+  name: airflow
+  user: airflow
+  password: airflow
+
+redis:
+  host: redis
+  port: 6379
+
+minio:
+  secretName: minio-credentials
+
+webserver:
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 250m
+    limits:
+      memory: 1Gi
+      cpu: 500m
+
+scheduler:
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 250m
+    limits:
+      memory: 1Gi
+      cpu: 500m
+
+worker:
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 250m
+    limits:
+      memory: 1Gi
+      cpu: 500m
+
+triggerer:
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 250m
+    limits:
+      memory: 1Gi
+      cpu: 500m
+
+dags:
+  configMaps:
+    - name: airflow-dags-mlops
+      files:
+        - name: data_pipeline.py
+        - name: modeling_pipeline.py
+        - name: production_pipeline.py
+
+volumes:
+  dags:
+    type: emptyDir
+  plugins:
+    type: emptyDir
+  tmp:
+    type: emptyDir
+
+admin:
+  username: airflow
+  password: airflow
+  firstname: Admin
+  lastname: User
+  email: admin@example.com 

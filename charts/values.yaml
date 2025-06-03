@@ -1,0 +1,32 @@
+global:
+  storageClass: standard
+
+secrets:
+  enabled: true
+
+postgres:
+  enabled: true
+
+redis:
+  enabled: true
+
+minio:
+  enabled: true
+
+mlflow:
+  enabled: true
+
+airflow:
+  enabled: true
+
+fastapi:
+  enabled: true
+
+prometheus:
+  enabled: true
+
+grafana:
+  enabled: true
+
+streamlit:
+  enabled: true 

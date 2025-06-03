@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airflow-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airflow-worker
+  template:
+    metadata:
+      labels:
+        app: airflow-worker
+    spec:
+      containers:
+        - name: airflow-worker
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - airflow
+            - celery
+            - worker
+          env:
+            - name: AIRFLOW__CORE__EXECUTOR
+              value: CeleryExecutor
+            - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
+              value: postgresql+psycopg2://{{ .Values.database.user }}:{{ .Values.database.password }}@{{ .Values.database.host }}:{{ .Values.database.port }}/{{ .Values.database.name }}
+            - name: AIRFLOW__CELERY__BROKER_URL
+              value: redis://{{ .Values.redis.host }}:{{ .Values.redis.port }}/0
+            - name: AIRFLOW__CELERY__RESULT_BACKEND
+              value: db+postgresql://{{ .Values.database.user }}:{{ .Values.database.password }}@{{ .Values.database.host }}:{{ .Values.database.port }}/{{ .Values.database.name }}
+            - name: C_FORCE_ROOT
+              value: "true"
+            - name: RAW_DB_CONN
+              value: postgresql+psycopg2://{{ .Values.database.user }}:{{ .Values.database.password }}@{{ .Values.database.host }}:{{ .Values.database.port }}/{{ .Values.database.name }}
+            - name: CLEAN_DB_CONN
+              value: postgresql+psycopg2://{{ .Values.database.user }}:{{ .Values.database.password }}@{{ .Values.database.host }}:{{ .Values.database.port }}/{{ .Values.database.name }}
+            - name: MLFLOW_TRACKING_URI
+              value: http://mlflow:5000
+            - name: DB_GET_DATA
+              value: http://fastapi:8989/data
+            - name: DB_FORMAT_DATA
+              value: http://fastapi:8989/reset
+          resources:
+            {{- toYaml .Values.worker.resources | nindent 12 }}
+          volumeMounts:
+            - name: dags-volume
+              mountPath: /opt/airflow/dags
+            - name: airflow-logs
+              mountPath: /opt/airflow/logs
+            - name: plugins-volume
+              mountPath: /opt/airflow/plugins
+            - name: tmp-dir
+              mountPath: /opt/airflow/dags/tmp
+            - name: airflow-config
+              mountPath: /opt/airflow/airflow.cfg
+              subPath: airflow.cfg
+            - name: dags-mlops
+              mountPath: /opt/airflow/dags/data_pipeline.py
+              subPath: data_pipeline.py
+            - name: dags-mlops
+              mountPath: /opt/airflow/dags/modeling_pipeline.py
+              subPath: modeling_pipeline.py
+            - name: dags-mlops
+              mountPath: /opt/airflow/dags/production_pipeline.py
+              subPath: production_pipeline.py
+      volumes:
+        - name: dags-volume
+          emptyDir: {}
+        - name: airflow-logs
+          persistentVolumeClaim:
+            claimName: airflow-logs-pvc
+        - name: plugins-volume
+          emptyDir: {}
+        - name: tmp-dir
+          emptyDir: {}
+        - name: airflow-config
+          configMap:
+            name: airflow-config
+        - name: dags-mlops
+          configMap:
+            name: airflow-dags-mlops 

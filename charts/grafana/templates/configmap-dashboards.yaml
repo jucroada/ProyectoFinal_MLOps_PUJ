@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+data:
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+      - name: {{ .Values.dashboardProviders.default.name | quote }}
+        orgId: {{ .Values.dashboardProviders.default.orgId }}
+        folder: {{ .Values.dashboardProviders.default.folder | quote }}
+        type: {{ .Values.dashboardProviders.default.type | quote }}
+        disableDeletion: {{ .Values.dashboardProviders.default.disableDeletion }}
+        editable: {{ .Values.dashboardProviders.default.editable }}
+        options:
+          path: {{ .Values.dashboardProviders.default.options.path | quote }} 

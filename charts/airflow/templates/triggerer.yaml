@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airflow-triggerer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airflow-triggerer
+  template:
+    metadata:
+      labels:
+        app: airflow-triggerer
+    spec:
+      containers:
+        - name: airflow-triggerer
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["airflow", "triggerer"]
+          env:
+            - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+              value: postgresql+psycopg2://{{ .Values.database.user }}:{{ .Values.database.password }}@{{ .Values.database.host }}:{{ .Values.database.port }}/{{ .Values.database.name }}
+            - name: AIRFLOW__CELERY__BROKER_URL
+              value: redis://{{ .Values.redis.host }}:{{ .Values.redis.port }}/0
+            - name: AIRFLOW__CELERY__RESULT_BACKEND
+              value: db+postgresql://{{ .Values.database.user }}:{{ .Values.database.password }}@{{ .Values.database.host }}:{{ .Values.database.port }}/{{ .Values.database.name }}
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.minio.secretName }}
+                  key: access-key
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.minio.secretName }}
+                  key: secret-key
+          resources:
+            {{- toYaml .Values.triggerer.resources | nindent 12 }}
+          volumeMounts:
+            - name: dags-volume
+              mountPath: /opt/airflow/dags
+            - name: airflow-logs
+              mountPath: /opt/airflow/logs
+            - name: plugins-volume
+              mountPath: /opt/airflow/plugins
+            - name: tmp-dir
+              mountPath: /opt/airflow/dags/tmp
+            {{- range $index, $configMap := .Values.dags.configMaps }}
+            - name: dag{{ add $index 1 }}
+              mountPath: /opt/airflow/dags/dag{{ add $index 1 }}.py
+              subPath: dag{{ add $index 1 }}.py
+            {{- end }}
+      volumes:
+        - name: dags-volume
+          emptyDir: {}
+        - name: airflow-logs
+          persistentVolumeClaim:
+            claimName: airflow-logs-pvc
+        - name: plugins-volume
+          emptyDir: {}
+        - name: tmp-dir
+          emptyDir: {}
+        {{- range $index, $configMap := .Values.dags.configMaps }}
+        - name: dag{{ add $index 1 }}
+          configMap:
+            name: {{ $configMap.name }}
+        {{- end }} 

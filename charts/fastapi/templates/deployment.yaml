@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fastapi
+  template:
+    metadata:
+      labels:
+        app: fastapi
+      {{- if .Values.metrics.enabled }}
+      annotations:
+        {{- toYaml .Values.metrics.annotations | nindent 8 }}
+      {{- end }}
+    spec:
+      containers:
+        - name: fastapi
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+              name: http
+          env:
+            - name: MLFLOW_TRACKING_URI
+              value: "http://{{ .Values.mlflow.host }}:{{ .Values.mlflow.port }}"
+            - name: RAW_DB_CONN
+              value: "postgresql+psycopg2://{{ .Values.database.user }}:{{ .Values.database.password }}@{{ .Values.database.host }}:{{ .Values.database.port }}/{{ .Values.database.name }}"
+            - name: CLEAN_DB_CONN
+              value: "postgresql+psycopg2://{{ .Values.database.user }}:{{ .Values.database.password }}@{{ .Values.database.host }}:{{ .Values.database.port }}/{{ .Values.database.name }}"
+            - name: AWS_ACCESS_KEY_ID
+              value: {{ .Values.minio.accessKey | quote }}
+            - name: AWS_SECRET_ACCESS_KEY
+              value: {{ .Values.minio.secretKey | quote }}
+            - name: MLFLOW_S3_BUCKET 
+              value: {{ .Values.minio.bucket | quote }}
+            - name: MLFLOW_S3_ENDPOINT_URL
+              value: {{ .Values.minio.endpoint | quote }}
+            - name: ENABLE_METRICS
+              value: {{ .Values.metrics.enabled | quote }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probes.readiness.path }}
+              port: {{ .Values.probes.readiness.port }}
+            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probes.liveness.path }}
+              port: {{ .Values.probes.liveness.port }}
+            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }} 

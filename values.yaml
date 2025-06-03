@@ -1,0 +1,70 @@
+# Configuración global
+global:
+  storageClass: standard
+  registry: ""
+  imagePullPolicy: IfNotPresent
+
+# Habilitar/deshabilitar componentes
+secrets:
+  enabled: true
+
+postgres:
+  enabled: true
+  persistence:
+    size: 8Gi
+  postgresql:
+    username: airflow
+    password: airflow
+    database: airflow
+    port: 5432
+
+redis:
+  enabled: true
+
+minio:
+  enabled: true
+  credentials:
+    username: admin
+    password: supersecret
+  service:
+    port: 9001
+
+mlflow:
+  enabled: true
+  service:
+    port: 5000
+
+airflow:
+  enabled: true
+  persistence:
+    logs:
+      size: 5Gi
+  webserver:
+    service:
+      port: 8080
+  credentials:
+    username: airflow
+    password: airflow
+
+fastapi:
+  enabled: true
+  service:
+    port: 8989
+
+prometheus:
+  enabled: true
+  service:
+    port: 9090
+
+grafana:
+  enabled: true
+  service:
+    port: 3000
+  credentials:
+    username: admin
+    password: admin
+
+streamlit:
+  enabled: true
+  service:
+    port: 8501 

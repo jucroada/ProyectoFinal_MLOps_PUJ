@@ -1,0 +1,11 @@
+image:
+  repository: blutenherz/streamlit-mlops
+  tag: 1.0.0
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8501
+
+api:
+  url: http://fastapi:8989 
