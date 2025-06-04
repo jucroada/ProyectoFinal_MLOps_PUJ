@@ -1,0 +1,140 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airflow-webserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airflow-webserver
+  template:
+    metadata:
+      labels:
+        app: airflow-webserver
+    spec:
+      initContainers:
+        - name: init-db
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          command:
+            - "/bin/bash"
+            - "-c"
+            - |
+              echo "Esperando a que PostgreSQL esté listo..."
+              until pg_isready -h {{ .Values.database.host }} -U {{ .Values.database.user }}; do
+                echo "PostgreSQL no está listo - esperando..."
+                sleep 5
+              done
+              echo "PostgreSQL está listo, iniciando inicialización de Airflow..."
+              
+              echo "Inicializando base de datos de Airflow..."
+              airflow db init
+              
+              echo "Creando usuario administrador..."
+              airflow users create \
+                --username {{ .Values.admin.username }} \
+                --password {{ .Values.admin.password }} \
+                --firstname {{ .Values.admin.firstname }} \
+                --lastname {{ .Values.admin.lastname }} \
+                --role Admin \
+                --email {{ .Values.admin.email }} || echo "El usuario ya existe"
+              
+              echo "Inicialización completada con éxito."
+          env:
+            - name: AIRFLOW__CORE__EXECUTOR
+              value: CeleryExecutor
+            - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
+              value: postgresql+psycopg2://{{ .Values.database.user }}:{{ .Values.database.password }}@{{ .Values.database.host }}:{{ .Values.database.port }}/{{ .Values.database.name }}
+            - name: AIRFLOW__CELERY__BROKER_URL
+              value: redis://{{ .Values.redis.host }}:{{ .Values.redis.port }}/0
+            - name: PGPASSWORD
+              value: {{ .Values.database.password | quote }}
+          volumeMounts:
+            - name: airflow-config
+              mountPath: /opt/airflow/airflow.cfg
+              subPath: airflow.cfg
+      containers:
+        - name: airflow-webserver
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - airflow
+            - webserver
+          env:
+            - name: AIRFLOW__CORE__EXECUTOR
+              value: CeleryExecutor
+            - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
+              value: postgresql+psycopg2://{{ .Values.database.user }}:{{ .Values.database.password }}@{{ .Values.database.host }}:{{ .Values.database.port }}/{{ .Values.database.name }}
+            - name: AIRFLOW__CELERY__BROKER_URL
+              value: redis://{{ .Values.redis.host }}:{{ .Values.redis.port }}/0
+            - name: AIRFLOW__CELERY__RESULT_BACKEND
+              value: db+postgresql://{{ .Values.database.user }}:{{ .Values.database.password }}@{{ .Values.database.host }}:{{ .Values.database.port }}/{{ .Values.database.name }}
+            - name: AIRFLOW__WEBSERVER__BASE_URL
+              value: http://localhost:8080
+            - name: AIRFLOW__WEBSERVER__EXPOSE_CONFIG
+              value: "true"
+            - name: RAW_DB_CONN
+              value: postgresql+psycopg2://{{ .Values.database.user }}:{{ .Values.database.password }}@{{ .Values.database.host }}:{{ .Values.database.port }}/{{ .Values.database.name }}
+            - name: CLEAN_DB_CONN
+              value: postgresql+psycopg2://{{ .Values.database.user }}:{{ .Values.database.password }}@{{ .Values.database.host }}:{{ .Values.database.port }}/{{ .Values.database.name }}
+            - name: MLFLOW_TRACKING_URI
+              value: http://mlflow:5000
+            - name: DB_GET_DATA
+              value: http://fastapi:8989/data
+            - name: DB_FORMAT_DATA
+              value: http://fastapi:8989/reset
+          ports:
+            - name: web
+              containerPort: 8080
+          resources:
+            {{- toYaml .Values.webserver.resources | nindent 12 }}
+          volumeMounts:
+            - name: dags-volume
+              mountPath: /opt/airflow/dags
+            - name: airflow-logs
+              mountPath: /opt/airflow/logs
+            - name: plugins-volume
+              mountPath: /opt/airflow/plugins
+            - name: tmp-dir
+              mountPath: /opt/airflow/dags/tmp
+            - name: airflow-config
+              mountPath: /opt/airflow/airflow.cfg
+              subPath: airflow.cfg
+            - name: dags-mlops
+              mountPath: /opt/airflow/dags/data_pipeline.py
+              subPath: data_pipeline.py
+            - name: dags-mlops
+              mountPath: /opt/airflow/dags/modeling_pipeline.py
+              subPath: modeling_pipeline.py
+            - name: dags-mlops
+              mountPath: /opt/airflow/dags/production_pipeline.py
+              subPath: production_pipeline.py
+      volumes:
+        - name: dags-volume
+          emptyDir: {}
+        - name: airflow-logs
+          persistentVolumeClaim:
+            claimName: airflow-logs-pvc
+        - name: plugins-volume
+          emptyDir: {}
+        - name: tmp-dir
+          emptyDir: {}
+        - name: airflow-config
+          configMap:
+            name: airflow-config
+        - name: dags-mlops
+          configMap:
+            name: airflow-dags-mlops
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: airflow-webserver
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    app: airflow-webserver
+  ports:
+    - name: web
+      protocol: TCP
+      port: {{ .Values.service.port }}
+      targetPort: web 

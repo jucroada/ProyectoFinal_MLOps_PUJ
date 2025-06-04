@@ -1,0 +1,102 @@
+image:
+  repository: grafana/grafana
+  tag: 10.3.4
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 3000
+
+datasources:
+  prometheus:
+    name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+
+dashboardProviders:
+  default:
+    name: default
+    orgId: 1
+    folder: ''
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards
+
+dashboard:
+  title: "Dashboard Unificado - FastAPI MLOps - Precio Vivienda"
+  timezone: "browser"
+  refresh: "5s"
+  panels:
+    - type: stat
+      title: "Total de predicciones"
+      expr: "predict_requests_total"
+      gridPos:
+        x: 0
+        y: 0
+        w: 6
+        h: 4
+    - type: timeseries
+      title: "Tasa de predicciones por segundo"
+      expr: "rate(predict_requests_total[1m])"
+      gridPos:
+        x: 6
+        y: 0
+        w: 18
+        h: 8
+    - type: stat
+      title: "Latencia promedio (s)"
+      expr: "rate(predict_latency_seconds_sum[1m]) / rate(predict_latency_seconds_count[1m])"
+      gridPos:
+        x: 0
+        y: 4
+        w: 6
+        h: 4
+    - type: gauge
+      title: "Uptime de la API"
+      expr: "api_uptime"
+      gridPos:
+        x: 6
+        y: 4
+        w: 6
+        h: 4
+      fieldConfig:
+        defaults:
+          min: 0
+          max: 1
+    - type: stat
+      title: "Memoria usada (MB)"
+      expr: "process_resident_memory_bytes / 1024 / 1024"
+      gridPos:
+        x: 12
+        y: 4
+        w: 6
+        h: 4
+    - type: stat
+      title: "CPU usado (s)"
+      expr: "process_cpu_seconds_total"
+      gridPos:
+        x: 18
+        y: 4
+        w: 6
+        h: 4
+    - type: stat
+      title: "Tiempo activo (s)"
+      expr: "time() - process_start_time_seconds"
+      gridPos:
+        x: 0
+        y: 8
+        w: 6
+        h: 4
+    - type: stat
+      title: "GC total"
+      expr: "sum(python_gc_collections_total)"
+      gridPos:
+        x: 6
+        y: 8
+        w: 6
+        h: 4 

@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mlflow
+  template:
+    metadata:
+      labels:
+        app: mlflow
+    spec:
+      initContainers:
+      - name: init-db
+        image: "{{ .Values.initContainer.image.repository }}:{{ .Values.initContainer.image.tag }}"
+        command:
+        - /bin/bash
+        - -c
+        - |
+          echo "Esperando a que PostgreSQL esté listo..."
+          until pg_isready -h {{ .Values.database.host }} -U {{ .Values.database.user }}; do
+            echo "PostgreSQL no está listo - esperando..."
+            sleep 5
+          done
+          
+          echo "PostgreSQL está listo, verificando si la base de datos {{ .Values.database.name }} existe..."
+          export PGPASSWORD={{ .Values.database.password }}
+          if psql -h {{ .Values.database.host }} -U {{ .Values.database.user }} -lqt | cut -d \| -f 1 | grep -qw {{ .Values.database.name }}; then
+            echo "La base de datos {{ .Values.database.name }} ya existe."
+          else
+            echo "Creando base de datos {{ .Values.database.name }}..."
+            psql -h {{ .Values.database.host }} -U {{ .Values.database.user }} -c "CREATE DATABASE {{ .Values.database.name }};"
+            echo "Base de datos {{ .Values.database.name }} creada."
+          fi
+      containers:
+      - name: mlflow
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: ["mlflow", "server"]
+        args:
+          - "--host=0.0.0.0"
+          - "--port={{ .Values.service.port }}"
+          - "--backend-store-uri=postgresql+psycopg2://{{ .Values.database.user }}:{{ .Values.database.password }}@{{ .Values.database.host }}:{{ .Values.database.port }}/{{ .Values.database.name }}"
+          - "--default-artifact-root=s3://{{ .Values.minio.bucket }}/artifacts"
+        env:
+        - name: MLFLOW_S3_ENDPOINT_URL
+          value: {{ .Values.minio.endpoint }}
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.minio.secretName }}
+              key: access-key
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.minio.secretName }}
+              key: secret-key
+        ports:
+        - containerPort: {{ .Values.service.port }}
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.probes.readiness.path }}
+            port: {{ .Values.probes.readiness.port }}
+          initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+          periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.probes.liveness.path }}
+            port: {{ .Values.probes.liveness.port }}
+          initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+          periodSeconds: {{ .Values.probes.liveness.periodSeconds }} 

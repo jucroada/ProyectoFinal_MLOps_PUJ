@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+data:
+  datasources.yaml: |-
+    apiVersion: 1
+    datasources:
+      - name: {{ .Values.datasources.prometheus.name | quote }}
+        type: {{ .Values.datasources.prometheus.type | quote }}
+        access: {{ .Values.datasources.prometheus.access | quote }}
+        url: {{ .Values.datasources.prometheus.url | quote }}
+        isDefault: {{ .Values.datasources.prometheus.isDefault }}
+        editable: {{ .Values.datasources.prometheus.editable }} 

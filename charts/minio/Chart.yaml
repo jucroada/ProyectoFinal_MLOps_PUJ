@@ -1,0 +1,6 @@
+apiVersion: v2
+name: minio
+description: MinIO para almacenamiento de objetos compatible con S3
+type: application
+version: 0.1.0
+appVersion: "1.0.0" 

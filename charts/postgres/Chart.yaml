@@ -1,0 +1,6 @@
+apiVersion: v2
+name: postgres
+description: PostgreSQL para la plataforma MLOps
+type: application
+version: 0.1.0
+appVersion: "13.0.0" 

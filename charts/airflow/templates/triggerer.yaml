@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airflow-triggerer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airflow-triggerer
+  template:
+    metadata:
+      labels:
+        app: airflow-triggerer
+    spec:
+      containers:
+        - name: airflow-triggerer
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["airflow", "triggerer"]
+          env:
+            - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+              value: postgresql+psycopg2://{{ .Values.database.user }}:{{ .Values.database.password }}@{{ .Values.database.host }}:{{ .Values.database.port }}/{{ .Values.database.name }}
+            - name: AIRFLOW__CELERY__BROKER_URL
+              value: redis://{{ .Values.redis.host }}:{{ .Values.redis.port }}/0
+            - name: AIRFLOW__CELERY__RESULT_BACKEND
+              value: db+postgresql://{{ .Values.database.user }}:{{ .Values.database.password }}@{{ .Values.database.host }}:{{ .Values.database.port }}/{{ .Values.database.name }}
+            - name: AWS_ACCESS_KEY_ID
+              value: admin
+            - name: AWS_SECRET_ACCESS_KEY
+              value: supersecret
+            - name: MLFLOW_S3_ENDPOINT_URL
+              value: http://minio:9000
+          resources:
+            {{- toYaml .Values.triggerer.resources | nindent 12 }}
+          volumeMounts:
+            - name: dags-volume
+              mountPath: /opt/airflow/dags
+            - name: airflow-logs
+              mountPath: /opt/airflow/logs
+            - name: plugins-volume
+              mountPath: /opt/airflow/plugins
+            - name: tmp-dir
+              mountPath: /opt/airflow/dags/tmp
+            - name: dags-mlops
+              mountPath: /opt/airflow/dags/data_pipeline.py
+              subPath: data_pipeline.py
+            - name: dags-mlops
+              mountPath: /opt/airflow/dags/modeling_pipeline.py
+              subPath: modeling_pipeline.py
+            - name: dags-mlops
+              mountPath: /opt/airflow/dags/production_pipeline.py
+              subPath: production_pipeline.py
+      volumes:
+        - name: dags-volume
+          emptyDir: {}
+        - name: airflow-logs
+          persistentVolumeClaim:
+            claimName: airflow-logs-pvc
+        - name: plugins-volume
+          emptyDir: {}
+        - name: tmp-dir
+          emptyDir: {}
+        - name: dags-mlops
+          configMap:
+            name: airflow-dags-mlops

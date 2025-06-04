@@ -1,0 +1,132 @@
+image:
+  repository: blutenherz/airflow-mlops
+  tag: 1.0.0
+  pullPolicy: IfNotPresent
+
+persistence:
+  logs:
+    enabled: true
+    size: 1Gi
+    storageClass: standard
+    accessMode: ReadWriteMany
+    hostPath: /tmp/airflow-logs
+
+service:
+  type: ClusterIP
+  port: 8080
+
+database:
+  host: mlops-postgres
+  port: 5432
+  name: airflow
+  user: airflow
+  password: airflow
+
+redis:
+  host: redis
+  port: 6379
+
+minio:
+  secretName: minio-credentials
+  endpoint: http://minio:9000
+  bucket: mlflows3
+
+webserver:
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 250m
+    limits:
+      memory: 1Gi
+      cpu: 500m
+
+scheduler:
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: 500m
+    limits:
+      memory: 2Gi
+      cpu: 800m
+  env:
+    - name: AWS_ACCESS_KEY_ID
+      valueFrom:
+        secretKeyRef:
+          name: minio-credentials
+          key: access-key
+    - name: AWS_SECRET_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          name: minio-credentials
+          key: secret-key
+    - name: MLFLOW_S3_ENDPOINT_URL
+      value: "http://minio:9000"
+
+worker:
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: 500m
+    limits:
+      memory: 3Gi
+      cpu: 1000m
+  env:
+    - name: AWS_ACCESS_KEY_ID
+      valueFrom:
+        secretKeyRef:
+          name: minio-credentials
+          key: access-key
+    - name: AWS_SECRET_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          name: minio-credentials
+          key: secret-key
+    - name: MLFLOW_S3_ENDPOINT_URL
+      value: "http://minio:9000"
+    - name: C_FORCE_ROOT
+      value: "true"
+
+triggerer:
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: 500m
+    limits:
+      memory: 2Gi
+      cpu: 800m
+  env:
+    - name: AWS_ACCESS_KEY_ID
+      valueFrom:
+        secretKeyRef:
+          name: minio-credentials
+          key: access-key
+    - name: AWS_SECRET_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          name: minio-credentials
+          key: secret-key
+    - name: MLFLOW_S3_ENDPOINT_URL
+      value: "http://minio:9000"
+
+dags:
+  configMaps:
+    - name: airflow-dags-mlops
+      files:
+        - name: data_pipeline.py
+        - name: modeling_pipeline.py
+        - name: production_pipeline.py
+
+volumes:
+  dags:
+    type: emptyDir
+  plugins:
+    type: emptyDir
+  tmp:
+    type: emptyDir
+
+admin:
+  username: airflow
+  password: airflow
+  firstname: Admin
+  lastname: User
+  email: admin@example.com

@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-json
+data:
+  dashboard.json: |
+    {
+      "title": {{ .Values.dashboard.title | quote }},
+      "timezone": {{ .Values.dashboard.timezone | quote }},
+      "refresh": {{ .Values.dashboard.refresh | quote }},
+      "schemaVersion": 36,
+      "version": 3,
+      "panels": [
+        {{- range $index, $panel := .Values.dashboard.panels }}
+        {{- if $index }},{{ end }}
+        {
+          "type": {{ $panel.type | quote }},
+          "title": {{ $panel.title | quote }},
+          "targets": [{ "expr": {{ $panel.expr | quote }}, "refId": "A" }],
+          "gridPos": {{ $panel.gridPos | toJson }}
+          {{- if $panel.fieldConfig }}
+          ,"fieldConfig": {{ $panel.fieldConfig | toJson }}
+          {{- end }}
+        }
+        {{- end }}
+      ]
+    } 

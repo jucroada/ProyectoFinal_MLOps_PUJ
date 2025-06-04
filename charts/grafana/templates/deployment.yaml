@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+        - name: grafana
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          volumeMounts:
+            - name: grafana-dashboard
+              mountPath: /var/lib/grafana/dashboards
+            - name: grafana-dashboards-config
+              mountPath: /etc/grafana/provisioning/dashboards
+            - name: grafana-datasources-config
+              mountPath: /etc/grafana/provisioning/datasources
+      volumes:
+        - name: grafana-dashboard
+          configMap:
+            name: grafana-dashboard-json
+        - name: grafana-dashboards-config
+          configMap:
+            name: grafana-dashboards
+        - name: grafana-datasources-config
+          configMap:
+            name: grafana-datasources 

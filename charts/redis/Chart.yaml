@@ -1,0 +1,6 @@
+apiVersion: v2
+name: redis
+description: Redis para Airflow Celery Executor
+type: application
+version: 0.1.0
+appVersion: "latest" 

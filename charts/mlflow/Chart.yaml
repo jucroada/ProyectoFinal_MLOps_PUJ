@@ -1,0 +1,6 @@
+apiVersion: v2
+name: mlflow
+description: MLflow para gestión del ciclo de vida de ML
+type: application
+version: 0.1.0
+appVersion: "1.0.0" 

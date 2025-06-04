@@ -1,0 +1,38 @@
+image:
+  repository: postgres
+  tag: "13"
+  pullPolicy: IfNotPresent
+
+postgresql:
+  database: airflow
+  username: airflow
+  password: airflow
+  host: mlops-postgres
+  port: 5432
+
+persistence:
+  enabled: true
+  storageClass: standard
+  size: 5Gi
+  mountPath: /var/lib/postgresql/data
+  subPath: pgdata
+
+resources:
+  requests:
+    memory: 256Mi
+    cpu: 100m
+  limits:
+    memory: 1Gi
+    cpu: 500m
+
+service:
+  type: ClusterIP
+  port: 5432
+
+probes:
+  liveness:
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  readiness:
+    initialDelaySeconds: 5
+    periodSeconds: 5 
