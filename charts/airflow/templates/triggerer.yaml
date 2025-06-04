@@ -45,11 +45,29 @@ spec:
               mountPath: /opt/airflow/plugins
             - name: tmp-dir
               mountPath: /opt/airflow/dags/tmp
-            {{- range $index, $configMap := .Values.dags.configMaps }}
-            - name: dag{{ add $index 1 }}
-              mountPath: /opt/airflow/dags/dag{{ add $index 1 }}.py
-              subPath: dag{{ add $index 1 }}.py
-            {{- end }}
+        {{- if .Values.gitSync.enabled }}
+        - name: git-sync
+          image: "{{ .Values.gitSync.image.repository }}:{{ .Values.gitSync.image.tag }}"
+          imagePullPolicy: {{ .Values.gitSync.image.pullPolicy }}
+          env:
+            - name: GIT_SYNC_REPO
+              value: {{ .Values.gitSync.repository }}
+            - name: GIT_SYNC_BRANCH
+              value: {{ .Values.gitSync.branch }}
+            - name: GIT_SYNC_ROOT
+              value: /git
+            - name: GIT_SYNC_DEST
+              value: repo
+            - name: GIT_SYNC_WAIT
+              value: "{{ .Values.gitSync.wait }}"
+            - name: GIT_SYNC_MAX_SYNC_FAILURES
+              value: "{{ .Values.gitSync.maxFailures }}"
+            - name: GIT_SYNC_ONE_TIME
+              value: "false"
+          volumeMounts:
+            - name: dags-volume
+              mountPath: /git
+        {{- end }}
       volumes:
         - name: dags-volume
           emptyDir: {}
@@ -59,9 +77,4 @@ spec:
         - name: plugins-volume
           emptyDir: {}
         - name: tmp-dir
-          emptyDir: {}
-        {{- range $index, $configMap := .Values.dags.configMaps }}
-        - name: dag{{ add $index 1 }}
-          configMap:
-            name: {{ $configMap.name }}
-        {{- end }} 
+          emptyDir: {} 

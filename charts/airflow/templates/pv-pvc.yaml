@@ -22,4 +22,30 @@ spec:
   resources:
     requests:
       storage: {{ .Values.persistence.logs.size }}
+{{- end }}
+{{- if and .Values.persistence.dags.enabled .Values.gitSync.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: airflow-dags-pv
+spec:
+  capacity:
+    storage: {{ .Values.persistence.dags.size }}
+  accessModes:
+    - {{ .Values.persistence.dags.accessMode }}
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: {{ .Values.persistence.dags.hostPath }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: airflow-dags-pvc
+spec:
+  accessModes:
+    - {{ .Values.persistence.dags.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.dags.size }}
 {{- end }} 

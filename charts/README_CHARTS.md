@@ -9,10 +9,10 @@ La transición de manifiestos de Kubernetes a Helm Charts se realizó siguiendo 
 charts/
 ├── airflow/
 │   ├── templates/
-│   │   ├── configmap-dags.yaml
 │   │   ├── deployment-scheduler.yaml
 │   │   ├── deployment-webserver.yaml
 │   │   ├── deployment-worker.yaml
+│   │   ├── triggerer.yaml
 │   │   ├── service.yaml
 │   │   └── ...
 │   ├── Chart.yaml
@@ -22,6 +22,28 @@ charts/
 ├── postgres/
 └── ...
 ```
+
+### Gestión de DAGs con GitHub
+
+Para la gestión de los DAGs de Airflow se implementó una solución basada en **git-sync** que sincroniza automáticamente los DAGs desde GitHub:
+
+**Puntos clave del proceso:**
+- **Sincronización automática**: Los DAGs se obtienen directamente del repositorio GitHub sin necesidad de ConfigMaps locales
+- **Git-sync configurado**: Se habilitó git-sync en todos los componentes de Airflow (scheduler, webserver, worker, triggerer)
+- **Eliminación de ConfigMaps**: Se removieron las referencias a ConfigMaps de DAGs que eran innecesarias y causaban conflictos
+- **Configuración centralizada**: En `values.yaml` se define el repositorio, rama y configuración de sincronización
+- **Resolución de conflictos**: Se eliminaron volumeMounts obsoletos que impedían el correcto inicio del triggerer
+
+**Configuración en values.yaml:**
+```yaml
+gitSync:
+  enabled: true
+  repository: "https://github.com/Serebas12/mlop_proyecto_final.git"
+  branch: "main"
+  subPath: "dags"
+```
+
+Esta implementación garantiza que los DAGs estén siempre actualizados y elimina la necesidad de reconstruir imágenes o ConfigMaps cuando se modifiquen los workflows.
 
 ### Archivos Principales
 1. **Chart.yaml**:

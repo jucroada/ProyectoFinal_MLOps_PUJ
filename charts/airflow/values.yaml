@@ -3,6 +3,20 @@ image:
   tag: 1.0.0
   pullPolicy: IfNotPresent
 
+gitSync:
+  enabled: true
+  repository: "https://github.com/Serebas12/mlop_proyecto_final.git"
+  branch: "main"
+  rev: "HEAD"
+  depth: 1
+  wait: 60
+  maxFailures: 0
+  subPath: "dags"
+  image:
+    repository: k8s.gcr.io/git-sync/git-sync
+    tag: "v3.6.3"
+    pullPolicy: IfNotPresent
+
 persistence:
   logs:
     enabled: true
@@ -10,6 +24,12 @@ persistence:
     storageClass: standard
     accessMode: ReadWriteMany
     hostPath: /tmp/airflow-logs
+  dags:
+    enabled: true
+    size: 1Gi
+    storageClass: standard
+    accessMode: ReadWriteMany
+    hostPath: /tmp/airflow-dags
 
 service:
   type: ClusterIP
@@ -64,14 +84,6 @@ triggerer:
     limits:
       memory: 1Gi
       cpu: 500m
-
-dags:
-  configMaps:
-    - name: airflow-dags-mlops
-      files:
-        - name: data_pipeline.py
-        - name: modeling_pipeline.py
-        - name: production_pipeline.py
 
 volumes:
   dags:
