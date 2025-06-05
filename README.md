@@ -483,3 +483,100 @@ kubectl create namespace mlops
 - Considerar la persistencia de datos en actualizaciones o reinstalaciones.
 - Para acceso web, utilizar port-forward o configurar ingress según sea necesario.
 
+---
+
+## Implementación de Argo CD para Despliegue Continuo
+
+Esta sección describe el proceso para implementar Argo CD y configurar el despliegue continuo de la plataforma MLOps, permitiendo la gestión declarativa y automatizada de los recursos en Kubernetes a partir de los cambios en el repositorio Git.
+
+
+### Instalación 
+
+#### 1. Instalar Argo CD
+
+```bash
+# Crear namespace
+kubectl create namespace argocd
+
+# Instalar Argo CD
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+# Esperar a que los pods estén listos
+kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=argocd-server -n argocd --timeout=300s
+
+# Observar pods
+kubectl get pods -n argocd
+```
+
+#### 2. Configurar el repositorio y la aplicación
+
+```bash
+# Aplicar configuración del repositorio
+tkubectl apply -f argocd/argocd-repo-config.yaml
+
+# Aplicar definición de la aplicación
+kubectl apply -f argocd/app.yaml
+```
+
+#### 3. Acceder a Argo CD
+
+```bash
+# Obtener contraseña (Linux/macOS)
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+
+# Obtener contraseña (Windows PowerShell)
+$password = kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | ForEach-Object { [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_)) }
+Write-Host "Contraseña: $password"
+
+# Exponer la interfaz web
+kubectl port-forward svc/argocd-server -n argocd 9999:443
+```
+
+Acceder a https://localhost:9999 con:
+- Usuario: admin
+- Contraseña: (obtenida en el paso anterior)
+
+#### 4. Sincronizar la aplicación
+
+Desde la interfaz web, hacer clic en "SYNC" en la aplicación mlops-platform.
+
+O desde la línea de comandos:
+```bash
+argocd app sync mlops-platform
+```
+
+<div align="center"> <img src="images/argo.jpeg" alt="argo" width="800"/> </div>
+
+
+### Estructura de archivos relevante para Argo CD
+
+- `app.yaml`: Definición de la aplicación Argo CD que apunta a los charts de Helm
+- `argocd-repo-config.yaml`: Configuración del repositorio Git
+- `install-complete.ps1`/`install-complete.sh`: Scripts de instalación completa
+
+### Repositorio monitoreado
+
+Esta configuración está preparada para monitorear el repositorio:
+**https://github.com/jucroada/ProyectoFinal_MLOps_PUJ.git**
+
+### Solución de problemas comunes
+
+- **Error al instalar con Helm después de kubectl:**
+  Si ya se instaló Argo CD con kubectl, no se debe instalar con Helm en el mismo namespace.
+
+- **Pods en estado Pending:**
+  Verificar los recursos disponibles en el clúster:
+  ```bash
+  kubectl describe pods -n argocd
+  ```
+
+- **Error de conexión al repositorio:**
+  Verificar que el repositorio sea accesible y que las credenciales sean correctas:
+  ```bash
+  kubectl logs -n argocd deployment/argocd-repo-server
+  ```
+
+---
+
+Con esta integración, la plataforma MLOps puede gestionarse de manera declarativa y automatizada, facilitando la entrega continua y la trazabilidad de los cambios en el entorno de producción. Se recomienda seguir los pasos descritos para garantizar una transición fluida y segura hacia un modelo de despliegue GitOps con Argo CD.
+
