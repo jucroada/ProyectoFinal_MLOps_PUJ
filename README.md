@@ -580,3 +580,11 @@ Esta configuración está preparada para monitorear el repositorio:
 
 Con esta integración, la plataforma MLOps puede gestionarse de manera declarativa y automatizada, facilitando la entrega continua y la trazabilidad de los cambios en el entorno de producción. Se recomienda seguir los pasos descritos para garantizar una transición fluida y segura hacia un modelo de despliegue GitOps con Argo CD.
 
+## Video YouTube
+
+A continuación, se comparte el enlace en el que se encuentra información adicional sobre el proyecto desarrollado:
+
+🔗 [Ver video explicativo del proyecto](https://youtu.be/eOqbjlYnvdk)
+
+
+
