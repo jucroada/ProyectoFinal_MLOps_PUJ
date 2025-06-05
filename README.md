@@ -1,84 +1,81 @@
-Antes de empezar, entendemos como accedemos a la información de la api correspondiente
+# Proyecto Final MLOps
 
-```bash
-# comprobamos si obtenemos respuesta con la ip via pin 
-ping 10.43.101.108
-```
-![Respuesta API Data](images/ping_apiData.png)
+Este repositorio documenta el proceso de desarrollo y despliegue de una arquitectura MLOps, iniciando con Docker Compose, seguido de la publicación de imágenes en Docker Hub, migración a Kubernetes mediante manifiestos y, finalmente, la integración y despliegue con Helm Charts. El objetivo es proporcionar una guía clara y replicable para usuarios interesados en implementar una solución MLOps completa.
 
-```bash 
-#   Accedemos al puerta publicado para verificar conectividad a la API (endpoint raíz)
-curl http://10.43.101.108:80
-```
-![Servicio de la API](images/APIresponse.png)
+## Acceso y Pruebas de la API
 
-```bash
-#   indagamos sobre el contenido de la api
-curl http://10.43.101.108:80/openapi.json
-```
+Para verificar la conectividad y el funcionamiento de la API de datos, se recomienda realizar los siguientes pasos:
 
-/home/estudiante/Documents/ProyectoFinal_MLOps_PUJ
+1. Comprobar la respuesta de la API mediante ping:
+   ```bash
+   ping 10.43.101.108
+   ```
+   ![Respuesta API Data](images/ping_apiData.png)
 
-Rutas encontradas
-/metrics con método GET usando Prometheus 
-/health con método GET para verificar con status OK
-/data con método GET con información necesaría `group_number` y `day`
-/restart_data_generation con método GET con información necesaria `group_number` y `day`
+2. Verificar la conectividad al endpoint raíz:
+   ```bash
+   curl http://10.43.101.108:80
+   ```
+   ![Servicio de la API](images/APIresponse.png)
 
-Con lo que nuestras consultas a la api serán llevadas a cabo de los siguientes url
+3. Consultar el contenido de la API:
+   ```bash
+   curl http://10.43.101.108:80/openapi.json
+   ```
 
+Las rutas disponibles en la API son:
+- `/metrics` (GET): Exposición de métricas para Prometheus.
+- `/health` (GET): Verificación de estado (status OK).
+- `/data` (GET): Requiere los parámetros `group_number` y `day`.
+- `/restart_data_generation` (GET): Requiere los parámetros `group_number` y `day`.
+
+Ejemplo de consulta de datos:
 ```plaintext
-http://10.43.101.108:80/data?group_number=6&day=Wednesday  # solicitud de datos
-http://10.43.101.108:80/restart_data_generation?group_number=6&day=Wednesday  # reinicio en el contador de solicitud a la API
+http://10.43.101.108:80/data?group_number=6&day=Wednesday
+```
+Ejemplo para reiniciar el contador de solicitudes:
+```plaintext
+http://10.43.101.108:80/restart_data_generation?group_number=6&day=Wednesday
 ```
 
-Desarrollamos todo el proceso para que el proceso se pueda levantar de manera automatica a traves del uso de docker compose, como nuestra base de levantamiento inicial, ya con este medio construido por completo, se hace la migración a kubernetes a traves de helm, sincronizamos el proceso con github 
+## Despliegue Inicial con Docker Compose
 
-Para levantar La arquitectura por medio de docker utilizamos los siguientes comandos 
+El proceso inicia con el levantamiento automático de la arquitectura mediante Docker Compose. Los comandos principales son:
 
-```bash
-docker compose up airflow-init 
-docker compose up --build -d 
-```
+- Inicialización de Airflow:
+  ```bash
+  docker compose up airflow-init 
+  ```
+- Construcción y despliegue de los servicios:
+  ```bash
+  docker compose up --build -d 
+  ```
+- Eliminación completa de la arquitectura:
+  ```bash
+  docker compose down -v --rmi all 
+  ```
 
-Para bajar por completo la arquitectura levantada por medio de docker utilizamos el siguiente comando
-
-```bash 
-docker compose down -v --rmi all 
-```
-
+Para el seguimiento de las tablas y almacenamiento en la base de datos PostgreSQL:
 ```bash
 docker compose exec mlops-postgres psql -U airflow -d airflow -c "\l"
 docker compose exec mlops-postgres psql -U airflow -d airflow -c "\dt *.*"
-
-
 ```
 
+Accesos a los servicios principales:
+- Airflow: http://localhost:8080
+- MinIO: http://localhost:9001
+- MLflow: http://localhost:5000
+- API del modelo: http://localhost:8989
+- Prometheus: http://localhost:9090
+- Grafana: http://localhost:3000
 
+> Nota: El servicio JupyterLab fue eliminado tras su uso en pruebas.
 
+## Ejemplos de Consumo de la API del Modelo
 
-**Nota:** Trabajaremos con fernet key
+Se presentan ejemplos de payload para el consumo del modelo vía API:
 
-```plaintext
-http://localhost:8080      #   airflow
-http://localhost:9001      #   minio
-http://localhost:5000      #   mlflow
-http://localhost:8888        # jupyterlab
-```
-
-anotación, para hacer tunel usando port forwarding a traves de la conexión ssh de la vm 
-
-Creación DAGS
-
-```bash 
-docker compose exec mlops-postgres psql -U airflow -d airflow -c "DROP SCHEMA raw_data CASCADE; DROP SCHEMA clean_data CASCADE;"
-docker compose restart fastapi
-
-```
-
-ejemplos de prueba para la api
-
-```plaintext 
+```json
 {
   "features": {
     "brokered_by": 101,
@@ -94,6 +91,8 @@ ejemplos de prueba para la api
     "prev_sold_date": "2022-03-15"
   }
 }
+```
+```json
 {
   "features": {
     "brokered_by": 55,
@@ -109,86 +108,334 @@ ejemplos de prueba para la api
     "prev_sold_date": "2023-01-22"
   }
 }
-
 ```
 
-migración a kubernetes 
+## Publicación de Imágenes en Docker Hub
 
+Cada servicio desarrollado se construye y publica individualmente en Docker Hub, siguiendo el esquema: construcción → publicación → actualización de Docker Compose → migración a manifiestos.
+
+Ejemplo de comandos para la publicación:
+```bash
+docker build -t blutenherz/airflow-mlops:1.0.0 .
+docker push blutenherz/airflow-mlops:1.0.0
+# Repetir para cada servicio: fastapi, minio, mlflow, streamlit
+```
+
+## Migración a Kubernetes
+
+La migración a Kubernetes se realiza en el directorio `k8s`, donde se encuentran los manifiestos para cada microservicio, utilizando imágenes personalizadas y públicas según corresponda.
+
+Verificación de la versión de kubectl:
 ```bash
 kubectl version --client 
 ```
 
-Publicación de cada imagen 
-En función decomandos bash, se construyen las imagenes base con las cuales se arranca cada servicio que es cargado a traves dedocker compose, por lo tanto cada una se crea de manera invidual siguiendo el esquema construcción -> publicación -> docker compose actualizado -> migración a manifiestos
+### Guía Completa de Despliegue en Kubernetes
+
+#### Componentes
+
+- PostgreSQL: Base de datos para Airflow y MLflow
+- Redis: Broker para Airflow Celery Executor
+- Airflow: Orquestador de flujos de trabajo
+- MinIO: Almacenamiento de objetos compatible con S3
+- MLflow: Gestión del ciclo de vida de ML
+- FastAPI: API para servir modelos de ML
+- Streamlit: Interfaz de usuario
+- Prometheus: Monitoreo de métricas
+- Grafana: Visualización de métricas
+
+#### Requisitos Previos
+
+- Cluster de Kubernetes (Minikube, K3s, EKS, AKS, GKE, etc.)
+- kubectl configurado
+
+#### Pasos para el Despliegue
+
+1. **Crear secretos**
+   ```bash
+   kubectl apply -f secrets/minio-secrets.yaml
+   ```
+2. **Configurar almacenamiento persistente para PostgreSQL**
+   ```bash
+   kubectl apply -f postgres/postgres-pv-pvc.yaml
+   ```
+3. **Desplegar PostgreSQL**
+   ```bash
+   kubectl apply -f postgres/postgres-deployment.yaml
+   ```
+4. **Desplegar Redis**
+   ```bash
+   kubectl apply -f airflow/redis-deployment.yaml
+   ```
+5. **Desplegar MinIO**
+   ```bash
+   kubectl apply -f minio/minio-deployment.yaml
+   kubectl apply -f minio/minio-service.yaml
+   ```
+6. **Desplegar MLflow**
+   ```bash
+   kubectl apply -f mlflow/mlflow-fix.yaml
+   kubectl apply -f mlflow/mlflow-service.yaml
+   ```
+7. **Desplegar Airflow**
+   ```bash
+   kubectl apply -f airflow/airflow-logs-pv.yaml
+   kubectl apply -f airflow/airflow-configmap.yaml
+   kubectl apply -f airflow/airflow-dags-configmap-1.yaml
+   kubectl apply -f airflow/airflow-dags-configmap-2.yaml
+   kubectl apply -f airflow/airflow-dags-configmap-3.yaml
+   kubectl apply -f airflow/airflow-unified.yaml
+   kubectl get pods -l 'app in (airflow-webserver,airflow-scheduler,airflow-worker,airflow-triggerer)'
+   ```
+8. **Desplegar FastAPI**
+   ```bash
+   kubectl apply -f fastapi/fastapi-deployment.yaml
+   kubectl apply -f fastapi/fastapi-service.yaml
+   ```
+9. **Desplegar Prometheus y Grafana**
+   ```bash
+   kubectl apply -f prometheus/prometheus-configmap.yaml
+   kubectl apply -f prometheus/prometheus-deployment.yaml
+   kubectl apply -f grafana/grafana-dashboards-configmap.yaml
+   kubectl apply -f grafana/grafana-dashboard-configmap.yaml
+   kubectl apply -f grafana/grafana-datasource-configmap.yaml
+   kubectl apply -f grafana/grafana-deployment.yaml
+   ```
+10. **Desplegar Streamlit**
+    ```bash
+    kubectl apply -f streamlit/streamlit-deployment.yaml
+    kubectl apply -f streamlit/streamlit-service.yaml
+    ```
+
+#### Acceso a los Servicios
+
+Para acceder a los servicios desde fuera del cluster, se recomienda utilizar port-forwarding:
 
 ```bash
-docker build -t blutenherz/airflow-mlops:1.0.0 .
-docker push blutenherz/airflow-mlops:1.0.0
-
-docker build -t blutenherz/fastapi-mlops:1.0.0 .
-docker push blutenherz/fastapi-mlops:1.0.0
-
-docker build -t blutenherz/minio-mlops:1.0.0 .
-docker push blutenherz/minio-mlops:1.0.0
-
-docker build -t blutenherz/mlflow-mlops:1.0.0 .
-docker push blutenherz/mlflow-mlops:1.0.0
-
-docker build -t blutenherz/streamlit-mlops:1.0.0 .
-docker push blutenherz/streamlit-mlops:1.0.0
+kubectl port-forward svc/airflow-webserver 8080:8080
+kubectl port-forward svc/mlflow 5000:5000
+kubectl port-forward svc/minio 9001:9001
+kubectl port-forward svc/fastapi 8989:8989
+kubectl port-forward svc/streamlit 8501:8501
+kubectl port-forward svc/grafana 3000:3000
+kubectl port-forward svc/prometheus 9090:9090
 ```
 
-El proceso de despliegue de kubernetes se hace por aparte, el readme para desplegarlo se encuentra en k8s
+#### Verificación del Despliegue
 
+- Verificar que todos los pods estén en estado "Running":
+  ```bash
+  kubectl get pods
+  ```
+- Verificar los servicios:
+  ```bash
+  kubectl get services
+  ```
 
+#### Solución de Problemas Comunes
 
+1. **Logs no visibles en Airflow**: Verificar el montaje y permisos del volumen de logs.
+2. **DAGs no visibles en Airflow**: Confirmar la correcta aplicación y montaje de los ConfigMaps de DAGs.
+3. **Tareas en estado "queued" en Airflow**: Verificar el estado y logs del worker.
+4. **Conectividad entre Airflow y MLflow**: Comprobar el estado de los servicios y la conectividad entre pods.
+5. **Métricas no visibles en Grafana**: Verificar la exposición de métricas en FastAPI y la configuración de Prometheus y Grafana.
+6. **Pods en estado "Pending" o "ImagePullBackOff"**: Revisar recursos del cluster y eventos de los pods.
+
+#### Notas Importantes
+
+- **Credenciales por defecto**:
+  - Airflow: usuario=airflow, contraseña=airflow
+  - MinIO: usuario=admin, contraseña=supersecret
+  - Grafana: usuario=admin, contraseña=admin
+- **Volúmenes**:
+  - El volumen para los logs de Airflow está configurado como PersistentVolume con hostPath en `/tmp/airflow-logs`.
+  - Los volúmenes para DAGs y plugins están configurados como emptyDir.
+  - El directorio temporal `/opt/airflow/dags/tmp` es necesario para algunos DAGs.
+- **Configuraciones especiales**:
+  - MLflow cuenta con readiness y liveness probes.
+  - FastAPI incluye anotaciones para Prometheus.
+  - Grafana está preconfigurada con Prometheus como fuente de datos.
+
+#### Limpieza de Recursos
+
+Para eliminar todos los recursos creados:
 
 ```bash
-kubectl create namespace airflow-test
-#kubectl config set-context --current --namespace=airflow-test
-helm repo add apache-airflow https://airflow.apache.org
-helm repo update
-helm repo listThe output should include the apache-airflow repository:
-helm install airflow apache-airflow/airflow -f values.yaml --namespace airflow-test --wait
-
-
-helm uninstall airflow --namespace airflow-test
-kubectl delete namespace airflow-test --wait=true
-kubectl get namespaces
-
+kubectl delete -f streamlit/
+kubectl delete -f grafana/
+kubectl delete -f prometheus/
+kubectl delete -f fastapi/
+kubectl delete -f airflow/airflow-unified.yaml
+kubectl delete -f airflow/airflow-dags-configmap-3.yaml
+kubectl delete -f airflow/airflow-dags-configmap-2.yaml
+kubectl delete -f airflow/airflow-dags-configmap-1.yaml
+kubectl delete -f airflow/airflow-configmap.yaml
+kubectl delete -f airflow/redis-deployment.yaml
+kubectl delete -f mlflow/
+kubectl delete -f minio/
+kubectl delete -f postgres/
+kubectl delete -f secrets/
+kubectl delete pv airflow-logs-pv
 ```
 
-instalación directa al path de helm
+Para una limpieza más detallada, se recomienda eliminar deployments, servicios, volúmenes y ConfigMaps relacionados, así como la base de datos de Airflow en PostgreSQL.
 
+---
+
+## Migración a Helm
+
+La migración a Helm se realiza una vez validados y probados los manifiestos de Kubernetes. El desarrollo de los charts se encuentra en el directorio `charts`, siguiendo una estructura modular y reutilizable.
+
+### Estructura de Directorios
+
+```
+charts/
+├── airflow/
+│   ├── templates/
+│   ├── Chart.yaml
+│   └── values.yaml
+├── fastapi/
+├── mlflow/
+├── postgres/
+└── ...
+```
+
+- **Chart.yaml**: Configuración principal del chart, incluyendo dependencias.
+- **values.yaml**: Centraliza variables configurables.
+- **templates/**: Contiene los manifiestos templatizados.
+
+
+
+### Gestión de DAGs con GitHub
+
+Para la gestión de los DAGs de Airflow se implementó una solución basada en **git-sync** que sincroniza automáticamente los DAGs desde GitHub:
+
+**Puntos clave del proceso:**
+- **Sincronización automática**: Los DAGs se obtienen directamente del repositorio GitHub sin necesidad de ConfigMaps locales
+- **Git-sync configurado**: Se habilitó git-sync en todos los componentes de Airflow (scheduler, webserver, worker, triggerer)
+- **Eliminación de ConfigMaps**: Se removieron las referencias a ConfigMaps de DAGs que eran innecesarias y causaban conflictos
+- **Configuración centralizada**: En `values.yaml` se define el repositorio, rama y configuración de sincronización
+- **Resolución de conflictos**: Se eliminaron volumeMounts obsoletos que impedían el correcto inicio de los componentes
+
+**Configuración en values.yaml:**
+```yaml
+gitSync:
+  enabled: true
+  repository: "https://github.com/Serebas12/mlop_proyecto_final.git"
+  branch: "main"
+  subPath: "dags"
+  image:
+    repository: registry.k8s.io/git-sync/git-sync
+    tag: v4.2.1
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: 64Mi
+      cpu: 100m
+    limits:
+      memory: 128Mi
+      cpu: 200m
+```
+
+Esta implementación garantiza que los DAGs estén siempre actualizados y elimina la necesidad de reconstruir imágenes o ConfigMaps cuando se modifiquen los workflows.
+
+
+
+
+### Proceso de Migración
+
+1. Organización inicial de directorios y archivos base.
+2. Templatización de manifiestos, extrayendo valores a variables.
+3. Gestión de dependencias y configuración de orden de despliegue.
+
+### Guía de Despliegue con Helm
+
+1. Iniciar el cluster de Kubernetes:
+   ```bash
+   minikube stop
+   minikube start --cpus=6 --memory=10240 --disk-size=40g
+   ```
+2. Crear el namespace:
+   ```bash
+   kubectl create namespace mlops
+   ```
+3. Instalar los componentes por paquetes:
+   - **Paquete 1: Componentes Base**
+     ```bash
+     helm install secrets ./secrets -n mlops
+     helm install postgres ./postgres -n mlops
+     helm install redis ./redis -n mlops
+     helm install minio ./minio -n mlops
+     kubectl get pods -n mlops
+     ```
+   - **Paquete 2: Componentes MLOps Core**
+     ```bash
+     helm install mlflow ./mlflow -n mlops
+     helm install prometheus ./prometheus -n mlops
+     helm install grafana ./grafana -n mlops
+     kubectl get pods -n mlops
+     ```
+   - **Paquete 3: Orquestación y UI**
+     ```bash
+     helm install airflow ./airflow -n mlops
+     helm install fastapi ./fastapi -n mlops
+     helm install streamlit ./streamlit -n mlops
+     kubectl get pods -n mlops
+     ```
+
+#### Actualización y Reinstalación
+
+- Para actualizar un componente:
+  ```bash
+  helm upgrade [nombre-release] [nombre-chart] -n mlops
+  ```
+- Para reinstalar un paquete:
+  ```bash
+  helm uninstall airflow fastapi streamlit -n mlops
+  kubectl delete pvc -l "app in (airflow,fastapi,streamlit)" -n mlops
+  helm install airflow ./airflow -n mlops
+  helm install fastapi ./fastapi -n mlops
+  helm install streamlit ./streamlit -n mlops
+  ```
+
+#### Verificación y Port-Forwarding
+
+- Verificar pods y servicios:
+  ```bash
+  kubectl get pods -n mlops
+  kubectl get services -n mlops
+  helm list -n mlops
+  ```
+- Port-forwarding:
+  ```bash
+  kubectl port-forward svc/airflow-webserver 8080:8080 -n mlops
+  kubectl port-forward svc/mlflow 5000:5000 -n mlops
+  kubectl port-forward svc/minio 9001:9001 -n mlops
+  kubectl port-forward svc/fastapi 8989:8989 -n mlops
+  kubectl port-forward svc/streamlit 8501:8501 -n mlops
+  kubectl port-forward svc/grafana 3000:3000 -n mlops
+  ```
+
+#### Cadena de Comandos para Pruebas Iterativas
+
+Para reiniciar el entorno y evitar residuos de ejecuciones anteriores:
 ```bash
-helm repo update
-helm install airflow apache-airflow/airflow -f values.yaml
-helm uninstall airflow
-kubectl get pods
-kubectl describe pod <nombre-del-pod>
-kubectl logs <nombre-del-pod>
-
-kubectl delete pvc --all
-kubectl delete secret --all
-
-
-kubectl delete pod airflow-redis-0 --grace-period=0 --force
-kubectl delete pod airflow-run-airflow-migrations-9b92k --grace-period=0 --force
-
+helm uninstall airflow fastapi streamlit mlflow prometheus grafana minio redis postgres secrets -n mlops
+kubectl get all -n mlops
+kubectl delete pvc --all -n mlops
+kubectl delete namespace mlops
+kubectl create namespace mlops
+# Repetir instalación por paquetes como se indica arriba
 ```
 
-reset pods
-```bash
-helm uninstall airflow
-kubectl delete pvc --all
-kubectl delete pv --all
-kubectl delete secret --all
-kubectl delete configmap --all
+#### Notas Finales
 
-kubectl get pods
-# Si ves alguno en Terminating:
-kubectl delete pod <pod> --grace-period=0 --force
+- Verificar recursos del cluster antes de la instalación.
+- Respetar el orden de instalación para garantizar dependencias.
+- Monitorear logs ante errores.
+- Considerar la persistencia de datos en actualizaciones o reinstalaciones.
+- Para acceso web, utilizar port-forward o configurar ingress según sea necesario.
 
-```
+---
 
-
+Este documento proporciona una guía detallada y profesional para la replicación y despliegue de una arquitectura MLOps completa, asegurando claridad y coherencia en cada etapa del proceso.
