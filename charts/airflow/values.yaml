@@ -108,13 +108,22 @@ triggerer:
     - name: MLFLOW_S3_ENDPOINT_URL
       value: "http://minio:9000"
 
-dags:
-  configMaps:
-    - name: airflow-dags-mlops
-      files:
-        - name: data_pipeline.py
-        - name: modeling_pipeline.py
-        - name: production_pipeline.py
+gitSync:
+  enabled: true
+  repository: "https://github.com/Serebas12/mlop_proyecto_final.git"
+  branch: "main"
+  subPath: "dags"
+  image:
+    repository: registry.k8s.io/git-sync/git-sync
+    tag: v4.2.1
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: 64Mi
+      cpu: 100m
+    limits:
+      memory: 128Mi
+      cpu: 200m
 
 volumes:
   dags:
