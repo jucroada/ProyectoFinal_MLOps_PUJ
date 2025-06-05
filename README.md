@@ -2,6 +2,25 @@
 
 Este repositorio documenta el proceso de desarrollo y despliegue de una arquitectura MLOps, iniciando con Docker Compose, seguido de la publicación de imágenes en Docker Hub, migración a Kubernetes mediante manifiestos y, finalmente, la integración y despliegue con Helm Charts. El objetivo es proporcionar una guía clara y replicable para usuarios interesados en implementar una solución MLOps completa.
 
+
+## Arquitectura y componentes
+
+A continuación, se describen los componentes que conforman la arquitectura de despliegue de este proyecto. Cada uno de ellos cumple una función específica dentro del entorno de ejecución y ha sido seleccionado para garantizar una operación eficiente, modular y escalable.
+
+<div align="center"> <img src="images/arquitectura.png" alt="arquitectura" width="800"/> </div>
+
+### Componentes
+
+- **PostgreSQL**: Base de datos para Airflow y MLflow
+- **Redis**: Broker para Airflow Celery Executor
+- **Airflow**: Orquestador de flujos de trabajo
+- **MinIO**: Almacenamiento de objetos compatible con S3
+- **MLflow**: Gestión del ciclo de vida de ML
+- **FastAPI**: API para servir modelos de ML
+- **Streamlit**: Interfaz de usuario
+- **Prometheus**: Monitoreo de métricas
+- **Grafana**: Visualización de métricas
+
 ## Acceso y Pruebas de la API
 
 Para verificar la conectividad y el funcionamiento de la API de datos, se recomienda realizar los siguientes pasos:
@@ -37,6 +56,7 @@ Ejemplo para reiniciar el contador de solicitudes:
 ```plaintext
 http://10.43.101.108:80/restart_data_generation?group_number=6&day=Wednesday
 ```
+
 
 ## Despliegue Inicial con Docker Compose
 
@@ -132,17 +152,7 @@ kubectl version --client
 
 ### Guía Completa de Despliegue en Kubernetes
 
-#### Componentes
 
-- PostgreSQL: Base de datos para Airflow y MLflow
-- Redis: Broker para Airflow Celery Executor
-- Airflow: Orquestador de flujos de trabajo
-- MinIO: Almacenamiento de objetos compatible con S3
-- MLflow: Gestión del ciclo de vida de ML
-- FastAPI: API para servir modelos de ML
-- Streamlit: Interfaz de usuario
-- Prometheus: Monitoreo de métricas
-- Grafana: Visualización de métricas
 
 #### Requisitos Previos
 
@@ -383,6 +393,12 @@ Esta implementación garantiza que los DAGs estén siempre actualizados y elimin
      kubectl get pods -n mlops
      ```
 
+> **Nota:** Antes de ejecutar cada uno de los paquetes, se debe verificar que el componente anterior se encuentre en funcionamiento de manera exitosa. Este orden secuencial es fundamental para asegurar la correcta inicialización del entorno y la estabilidad del sistema durante su despliegue.
+
+Una vez ejecutado el proceso se deben validar que todos los servicios se encuentren corriendo correctamente: 
+
+<div align="center"> <img src="images/estado_servicios.png" alt="estado_servicios" width="800"/> </div>
+
 #### Actualización y Reinstalación
 
 - Para actualizar un componente:
@@ -416,6 +432,37 @@ Esta implementación garantiza que los DAGs estén siempre actualizados y elimin
   kubectl port-forward svc/grafana 3000:3000 -n mlops
   ```
 
+#### Validación de servicios:
+
+Se lleva a cabo una validación para asegurar que los servicios se encuentren operando correctamente. Esta verificación permite identificar posibles fallos tempranos y garantiza la estabilidad del sistema.
+
+
+- **Airflow**: 
+
+<div align="center"> <img src="images/airflow.jpeg" alt="airflow" width="800"/> </div>
+
+- **MinIO**: 
+
+<div align="center"> <img src="images/minio.jpeg" alt="minio" width="800"/> </div>
+
+- **MLflow**: 
+
+<div align="center"> <img src="images/mlflow.jpeg" alt="mlflow" width="800"/> </div>
+
+- **FastAPI**: 
+
+<div align="center"> <img src="images/fastapi.png" alt="fastapi" width="800"/> </div>
+
+- **Streamlit**: 
+
+<div align="center"> <img src="images/streamlit.jpeg" alt="streamlit" width="800"/> </div>
+
+- **Grafana**: 
+
+<div align="center"> <img src="images/grafana.jpeg" alt="grafana" width="800"/> </div>
+
+
+
 #### Cadena de Comandos para Pruebas Iterativas
 
 Para reiniciar el entorno y evitar residuos de ejecuciones anteriores:
@@ -436,6 +483,3 @@ kubectl create namespace mlops
 - Considerar la persistencia de datos en actualizaciones o reinstalaciones.
 - Para acceso web, utilizar port-forward o configurar ingress según sea necesario.
 
----
-
-Este documento proporciona una guía detallada y profesional para la replicación y despliegue de una arquitectura MLOps completa, asegurando claridad y coherencia en cada etapa del proceso.
