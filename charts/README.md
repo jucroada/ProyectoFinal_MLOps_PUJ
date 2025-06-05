@@ -160,7 +160,8 @@ kubectl get services -n mlops
 helm list -n mlops
 ```
 
-4. Port-Forwarding 
+4. Port-Forwarding (nos quedamos en el puerto de airflow para encender los dags, y verificar que todos corran al menos una vez para acceder a los demás puertos mediante el port forward).
+
 ```bash
 kubectl port-forward svc/airflow-webserver 8080:8080 -n mlops
 kubectl port-forward svc/mlflow 5000:5000 -n mlops
@@ -170,6 +171,9 @@ kubectl port-forward svc/streamlit 8501:8501 -n mlops
 kubectl port-forward svc/grafana 3000:3000 -n mlops
 
 ```
+
+
+Cadena de comandos para pruebas iterativas, se recomienda eliminar o resetear minikube para continuar con el flujo sin residuos de ejecuciones anteriores 
 
 ```bash 
 helm uninstall airflow fastapi streamlit mlflow prometheus grafana minio redis postgres secrets -n mlops
