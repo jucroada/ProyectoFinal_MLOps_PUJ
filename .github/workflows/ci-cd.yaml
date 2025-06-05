@@ -60,8 +60,3 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${{ secrets.GH_PUSH_TOKEN }}@github.com/${{ github.repository }}
           git config credential.helper store
-
-      - name: Configura Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.9"

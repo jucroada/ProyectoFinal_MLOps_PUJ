@@ -1,0 +1,11 @@
+server:
+  extraArgs:
+    - --insecure
+  service:
+    type: LoadBalancer
+
+configs:
+  repositories:
+    mlops-repo:
+      url: https://github.com/jucroada/ProyectoFinal_MLOps_PUJ.git
+      type: git
