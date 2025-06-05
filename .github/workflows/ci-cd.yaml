@@ -9,7 +9,7 @@ on:
 
 env:
   REGISTRY: docker.io
-  IMAGE_NAME: penguin-api
+  IMAGE_NAME: vivienda-api
 
 permissions:
   contents: write
@@ -60,3 +60,41 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${{ secrets.GH_PUSH_TOKEN }}@github.com/${{ github.repository }}
           git config credential.helper store
+
+
+#
+#directorios de los docker file 
+#
+#paths:
+#      - "taller_argo/api/**"
+#      - "taller_argo/manifests/**"
+#      - ".github/workflows/ci-cd.yml"
+#
+#
+# docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }} .
+#
+# docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }}
+#
+# sed -i "s|image: .*vivienda-api:.*|image: ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }}|" api-deployment.yaml
+#
+#
+# TOKEN: ${{ secrets.GH_PUSH_TOKEN }}
+#
+#          git config --global user.name "GitHub Actions"
+#          git config --global user.email "actions@github.com"
+#          git remote set-url origin https://x-access-token:${TOKEN}@github.com/${{ github.repository }}
+#          git add taller_argo/manifests/api-deployment.yaml
+#          git commit -m "Update image tag to ${{ steps.version.outputs.tag }}" || echo "No changes to commit"
+#          git push origin main || { echo "Push failed"; exit 1; }
+#
+#
+#
+#
+
+
+
+
+
+
+
+

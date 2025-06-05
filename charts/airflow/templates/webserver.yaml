@@ -53,36 +53,6 @@ spec:
               mountPath: /opt/airflow/airflow.cfg
               subPath: airflow.cfg
       containers:
-        {{- if .Values.gitSync.enabled }}
-        - name: git-sync
-          image: {{ .Values.gitSync.image.repository }}:{{ .Values.gitSync.image.tag }}
-          imagePullPolicy: {{ .Values.gitSync.image.pullPolicy }}
-          command: ["/bin/sh"]
-          args:
-            - -c
-            - |
-              /git-sync \
-                --repo={{ .Values.gitSync.repository }} \
-                --branch={{ .Values.gitSync.branch }} \
-                --depth=1 \
-                --one-time=false \
-                --root=/tmp/git \
-                --dest=repo \
-                --wait=60 &
-              
-              while true; do
-                if [ -d "/tmp/git/repo/dags" ]; then
-                  rm -rf /opt/airflow/dags/*
-                  cp -r /tmp/git/repo/dags/* /opt/airflow/dags/ 2>/dev/null || true
-                fi
-                sleep 60
-              done
-          volumeMounts:
-            - name: dags-volume
-              mountPath: /opt/airflow/dags
-          resources:
-            {{- toYaml .Values.gitSync.resources | nindent 12 }}
-        {{- end }}
         - name: airflow-webserver
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -129,6 +99,15 @@ spec:
             - name: airflow-config
               mountPath: /opt/airflow/airflow.cfg
               subPath: airflow.cfg
+            - name: dags-mlops
+              mountPath: /opt/airflow/dags/data_pipeline.py
+              subPath: data_pipeline.py
+            - name: dags-mlops
+              mountPath: /opt/airflow/dags/modeling_pipeline.py
+              subPath: modeling_pipeline.py
+            - name: dags-mlops
+              mountPath: /opt/airflow/dags/production_pipeline.py
+              subPath: production_pipeline.py
       volumes:
         - name: dags-volume
           emptyDir: {}
@@ -142,6 +121,9 @@ spec:
         - name: airflow-config
           configMap:
             name: airflow-config
+        - name: dags-mlops
+          configMap:
+            name: airflow-dags-mlops
 ---
 apiVersion: v1
 kind: Service
