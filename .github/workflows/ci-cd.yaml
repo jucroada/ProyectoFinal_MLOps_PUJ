@@ -1,0 +1,67 @@
+name: CI-CD Representativo
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+env:
+  REGISTRY: docker.io
+  IMAGE_NAME: penguin-api
+
+permissions:
+  contents: write
+
+jobs:
+  simple-check:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Ejercicio de prueba de github actions
+        run: |
+          echo "This is just a test"
+          echo "El repositorio Airflow generado es: https://github.com/Serebas12/mlop_proyecto_final.git"
+          echo "El usuario de Docker es: ${{ secrets.DOCKER_USERNAME }}"
+          if [ -n "${{ secrets.GH_PUSH_TOKEN }}" ]; then
+            echo "GH_PUSH_TOKEN configurado correctamente."
+          fi
+          if [ -n "${{ secrets.DOCKER_PASSWORD }}" ]; then
+            echo "DOCKER_PASSWORD configurado correctamente."
+          fi
+
+################################################# acá en adelante se puede agregar el flujo ci-cd ;)
+################################################# para completar el flujo ci-cd se definen las tareas de sincronización y despliegue
+  build-and-push:
+    name: Ejercicio de CI/CD - Construye imagen y sube a Docker Hub
+    runs-on: ubuntu-22.04
+    needs: simple-check
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+      - name: Verify Git repository
+        run: |
+          git status || { echo "Not a git repository"; exit 1; }
+
+      - name: Debug Git repository
+        run: |
+          echo "Current directory: $(pwd)"
+          ls -la
+          git rev-parse --show-toplevel || echo "Not in a git repository"
+
+      - name: Set up Git credentials
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.GH_PUSH_TOKEN }}@github.com/${{ github.repository }}
+          git config credential.helper store
+
+      - name: Configura Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
